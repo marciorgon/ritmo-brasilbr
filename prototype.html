@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ritmo Brasil (RB) - Pro v3.8 AI & GPS Fixed</title>
+    <title>Ritmo Brasil (RB) - Pro v4.0 Full Experience</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -62,6 +62,7 @@
             position: absolute;
             top: 0;
             left: 0;
+            z-index: 1;
         }
 
         .tab-content {
@@ -130,28 +131,12 @@
             cursor: pointer;
             backdrop-filter: blur(10px);
             background: rgba(255, 255, 255, 0.05);
-        }
-
-        .map-clear {
-            position: absolute;
-            top: 70px;
-            right: 20px;
-            z-index: 100;
-            padding: 10px 15px;
-            border-radius: 12px;
-            background: #ef4444;
-            color: white;
-            display: none;
-            font-size: 9px;
-            font-weight: 900;
-            text-transform: uppercase;
-            cursor: pointer;
-            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .running-overlay {
             position: absolute;
-            bottom: 30px;
+            bottom: 100px;
             left: 20px;
             right: 20px;
             z-index: 100;
@@ -161,25 +146,27 @@
         .stats-float {
             background: rgba(15, 23, 42, 0.95);
             backdrop-filter: blur(16px);
-            border: 1px solid rgba(34, 197, 94, 0.3);
-            border-radius: 28px;
-            padding: 18px;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            border-radius: 32px;
+            padding: 20px;
+            display: grid;
+            grid-template-cols: repeat(4, 1fr);
+            gap: 10px;
             pointer-events: auto;
         }
 
         .btn-stop {
             width: 48px;
             height: 48px;
-            border-radius: 14px;
+            border-radius: 16px;
             background: #ef4444;
             color: white;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
+            grid-column: span 1;
+            justify-self: center;
         }
 
         .user-marker {
@@ -209,21 +196,23 @@
         .leaflet-routing-container {
             display: none !important;
         }
+
+        .scroll-hide::-webkit-scrollbar {
+            display: none;
+        }
     </style>
 </head>
 
 <body>
 
-    <div class="mobile-container pb-[85px]" id="app-container">
+    <div class="mobile-container" id="app-container">
 
         <!-- TELA INÍCIO -->
         <div id="tab-inicio" class="tab-content active-screen scroll-hide">
             <div class="p-6 flex justify-between items-center bg-slate-950/50 sticky top-0 z-10 backdrop-blur-md">
-                <img src="logo.png" alt="RB" class="w-10 h-10 object-contain"
-                    onerror="this.src='https://api.dicebear.com/7.x/initials/svg?seed=RB&backgroundColor=22c55e'">
-                <button onclick="showScreen('screen-chat')"
-                    class="p-2 glass rounded-full text-emerald-500 hover:scale-110 transition-transform"><i
-                        data-lucide="message-square" class="w-5 h-5"></i></button>
+                <img src="logo.png" alt="RB" class="w-10 h-10 object-contain"">
+            <button onclick=" showScreen('screen-chat')" class="p-2 glass rounded-full text-emerald-500"><i
+                    data-lucide="message-square" class="w-5 h-5"></i></button>
             </div>
 
             <div class="p-6 space-y-6 text-left">
@@ -231,21 +220,16 @@
 
                 <div class="glass rounded-3xl p-6 border-l-4 border-emerald-500">
                     <div class="flex justify-between items-center mb-4">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Minha
-                            Pontuação</span>
-                        <span class="text-xl font-black text-emerald-500 leading-none font-bold">2,850 pts</span>
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ritmo Score</span>
+                        <span class="text-xl font-black text-emerald-500 font-bold">2,850 pts</span>
                     </div>
-                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full">
                         <div class="bg-emerald-500 h-full" style="width: 65%"></div>
                     </div>
                 </div>
 
-                <div class="bg-slate-900/60 rounded-3xl p-6 border border-white/5 relative shadow-xl">
-                    <div class="flex items-center gap-2 mb-2">
-                        <i data-lucide="zap" class="w-4 h-4 text-emerald-500"></i>
-                        <span class="text-[10px] font-black text-emerald-500 uppercase italic">Próximo Treino
-                            Planejado</span>
-                    </div>
+                <div class="bg-slate-900/60 rounded-3xl p-6 border border-white/5 relative">
+                    <p class="text-[10px] font-black text-emerald-500 uppercase italic mb-1">Destaque Hoje</p>
                     <h3 class="text-2xl font-black italic tracking-tighter mb-4 uppercase">Intervalado 5KM</h3>
                     <div class="grid grid-cols-2 gap-3 mb-6">
                         <button onclick="showScreen('screen-week')"
@@ -255,42 +239,13 @@
                             class="py-3 glass rounded-2xl text-[10px] font-bold uppercase text-slate-300">Histórico</button>
                     </div>
                     <button onclick="switchTab('correr')"
-                        class="w-full py-4 bg-emerald-500 text-black font-black rounded-2xl uppercase italic tracking-tighter shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">Iniciar
-                        Agora</button>
+                        class="w-full py-4 bg-emerald-500 text-black font-black rounded-2xl uppercase italic shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">Iniciar
+                        Atividade</button>
                 </div>
             </div>
         </div>
 
-        <!-- TELA CHAT IA (RESPOSTAS INTELIGENTES) -->
-        <div id="screen-chat" class="h-full hidden flex flex-col bg-[#020617] relative z-[100]">
-            <div class="p-6 flex items-center justify-between border-b border-white/5 bg-slate-950/80 backdrop-blur-md">
-                <button onclick="showScreen('tab-inicio')" class="p-3 glass rounded-2xl"><i data-lucide="chevron-left"
-                        class="w-5 h-5"></i></button>
-                <h2 class="text-sm font-black uppercase italic tracking-tighter">Coach IA Inteligente</h2>
-                <div class="w-10"></div>
-            </div>
-            <div class="flex-1 overflow-y-auto p-6 space-y-4 shadow-inner" id="chat-messages">
-                <div class="flex gap-3">
-                    <div
-                        class="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 text-[10px] font-black">
-                        IA</div>
-                    <div
-                        class="glass p-4 rounded-2xl rounded-tl-none text-xs font-bold italic text-emerald-400 max-w-[80%] uppercase">
-                        Olá Marcio! Sou seu Coach IA. Pergunte qualquer coisa sobre seu treino, nutrição ou pace.</div>
-                </div>
-            </div>
-            <div class="p-6 bg-slate-950/80 backdrop-blur-xl border-t border-white/5">
-                <div class="flex gap-2">
-                    <input type="text" id="chat-input" placeholder="Pergunte ao Coach..."
-                        class="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-xs focus:outline-none focus:border-emerald-500">
-                    <button onclick="sendAIResponse()"
-                        class="p-4 bg-emerald-500 text-black rounded-2xl active:scale-90 transition-transform"><i
-                            data-lucide="send" class="w-5 h-5"></i></button>
-                </div>
-            </div>
-        </div>
-
-        <!-- TELA MAPA (TRAÇAR ROTAS) -->
+        <!-- TELA MAPA -->
         <div id="tab-mapa" class="tab-content h-full relative">
             <div id="map-route" class="absolute inset-0 z-0"></div>
             <div class="map-toggle glass text-emerald-500" onclick="toggleMapTheme('map-route')"><i
@@ -298,27 +253,28 @@
 
             <div class="relative z-10 p-6 flex flex-col h-full pointer-events-none">
                 <div class="mt-auto pointer-events-auto flex flex-col gap-4 mb-2">
-                    <div id="route-menu" class="glass p-6 rounded-[32px] bg-slate-950/90 border border-emerald-500/10">
-                        <h3 class="text-xs font-black italic mb-4 uppercase text-emerald-500 tracking-widest">Definir
-                            Caminho</h3>
+                    <div id="route-menu"
+                        class="glass p-6 rounded-[32px] bg-slate-950/90 border border-emerald-500/10 shadow-2xl">
+                        <h3 class="text-xs font-black italic mb-4 uppercase text-emerald-500 tracking-widest">Planejar
+                            Destino</h3>
                         <div class="space-y-3">
                             <button onclick="suggestStreetRoute()"
-                                class="w-full bg-emerald-500 text-black py-4 rounded-2xl font-black text-xs uppercase tracking-tighter">Sugestão
-                                de Rota Local</button>
+                                class="w-full bg-emerald-500 text-black py-4 rounded-2xl font-black text-xs uppercase tracking-tighter active:scale-95 transition-all">Sugerir
+                                Rota Local</button>
                             <button onclick="startDrawingStreetRoute()"
                                 class="w-full bg-white/5 border border-white/10 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-tighter">Escolher
-                                Destino no Mapa</button>
+                                Destino</button>
                         </div>
                     </div>
 
                     <div id="route-confirm"
-                        class="hidden glass p-6 rounded-[32px] bg-emerald-500 border border-white/10 flex flex-col items-center">
-                        <h4 class="text-black font-black italic text-lg uppercase mb-4 tracking-tighter">Rota Calculada!
+                        class="hidden glass p-6 rounded-[32px] bg-emerald-500 border border-white/10 flex flex-col items-center shadow-2xl">
+                        <h4 class="text-black font-black italic text-lg uppercase mb-4 tracking-tighter">Caminho Gerado!
                         </h4>
                         <div class="flex gap-3 w-full">
-                            <button onclick="confirmAndToRunTab()"
-                                class="flex-1 bg-black text-white py-4 rounded-2xl font-black text-[10px] uppercase">Planejar
-                                e Iniciar</button>
+                            <button onclick="switchTab('correr')"
+                                class="flex-1 bg-black text-white py-4 rounded-2xl font-black text-[10px] uppercase shadow-lg">Iniciar
+                                Corrida</button>
                             <button onclick="resetMapRoute()"
                                 class="flex-1 bg-black/10 text-black py-4 rounded-2xl font-black text-[10px] uppercase">Refazer</button>
                         </div>
@@ -327,45 +283,83 @@
             </div>
         </div>
 
-        <!-- TELA CORRER (BOTÃO INICIAR FIXO) -->
+        <!-- TELA CORRER -->
         <div id="tab-correr" class="tab-content h-full relative">
             <div id="map" class="absolute inset-0 z-0"></div>
             <div class="map-toggle glass text-emerald-500" onclick="toggleMapTheme('map')"><i data-lucide="palette"></i>
             </div>
-            <div id="btn-clear-run-route" onclick="clearPlannedRunRoute()" class="map-clear">Limpar Rota</div>
 
-            <!-- UI DE CORRIDA ATIVA -->
+            <!-- UI FLUTUANTE DE STATUS -->
             <div class="running-overlay hidden" id="running-ui">
-                <div class="stats-float shadow-2xl">
+                <div class="stats-float shadow-2xl border-emerald-500/50">
                     <div class="text-center">
-                        <p class="text-lg font-black italic text-white" id="pace-display">0'00"</p>
-                        <p class="text-[7px] uppercase font-bold text-slate-500 tracking-widest">PACE</p>
+                        <p class="text-lg font-black italic text-white leading-none" id="dist-display">0.00</p>
+                        <p class="text-[7px] uppercase font-bold text-slate-500 mt-1">KM</p>
                     </div>
-                    <div class="text-center">
-                        <p class="text-lg font-black italic text-white" id="dist-display">0.00</p>
-                        <p class="text-[7px] uppercase font-bold text-slate-500 tracking-widest">KM</p>
+                    <div class="text-center border-l border-white/10">
+                        <p class="text-lg font-black italic text-white leading-none" id="time-display">00:00</p>
+                        <p class="text-[7px] uppercase font-bold text-slate-500 mt-1">TIME</p>
                     </div>
-                    <div class="text-center">
-                        <p class="text-lg font-black italic text-white" id="time-display">00:00</p>
-                        <p class="text-[7px] uppercase font-bold text-slate-500 tracking-widest">TIME</p>
+                    <div class="text-center border-l border-white/10">
+                        <p class="text-lg font-black italic text-white leading-none" id="kcal-display">0</p>
+                        <p class="text-[7px] uppercase font-bold text-slate-500 mt-1">KCAL</p>
                     </div>
-                    <div onclick="finishRun()" class="btn-stop"><i data-lucide="square"
+                    <div onclick="finishRunningSession()" class="btn-stop ml-2"><i data-lucide="square"
                             class="w-5 h-5 fill-current"></i></div>
                 </div>
             </div>
 
-            <!-- BOTÃO PARA INICIAR (SEMPRE VISÍVEL ANTES DE CORRER) -->
-            <div class="absolute inset-x-0 bottom-[120px] flex items-center justify-center z-[60]"
+            <!-- DIV DE INÍCIO -->
+            <div class="absolute inset-x-0 bottom-[120px] flex flex-col items-center justify-center z-[60]"
                 id="start-btn-container">
-                <button onclick="startRunNow()"
-                    class="w-24 h-24 bg-emerald-500 text-black rounded-full font-black uppercase italic shadow-2xl shadow-emerald-500/50 flex flex-col items-center justify-center gap-1 active:scale-95 transition-all">
-                    <i data-lucide="play" class="w-8 h-8 fill-current"></i><span class="text-[8px]">Começar</span>
-                </button>
+                <div
+                    class="bg-black/40 backdrop-blur-xl p-8 rounded-[40px] border border-white/10 flex flex-col items-center gap-6 shadow-2xl">
+                    <p class="text-[10px] font-black text-emerald-500 uppercase italic tracking-widest">Preparado,
+                        Marcio?</p>
+                    <button onclick="startGpsSession()"
+                        class="w-28 h-28 bg-emerald-500 text-black rounded-full font-black shadow-2xl shadow-emerald-500/40 flex flex-col items-center justify-center gap-1 active:scale-95 transition-all">
+                        <i data-lucide="play" class="w-10 h-10 fill-current"></i>
+                        <span class="text-[10px] uppercase italic">Começar</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TELA MISSÕES (FIXED) -->
+        <div id="tab-desafios" class="tab-content p-6 scroll-hide text-left">
+            <h2 class="text-3xl font-black italic mb-8 mt-6 uppercase tracking-tighter">Missões</h2>
+            <div class="space-y-4 shadow-inner" id="all-challenges-list">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- TELA STATUS (FIXED) -->
+        <div id="tab-progresso" class="tab-content p-6 scroll-hide text-left">
+            <h2 class="text-3xl font-black italic mb-8 mt-6 uppercase tracking-tighter">Meu Status</h2>
+            <div class="glass p-6 rounded-3xl mb-6 h-[220px] shadow-xl border border-white/5">
+                <canvas id="progressChart"></canvas>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="glass p-5 rounded-3xl border-b-2 border-emerald-500">
+                    <p class="text-[8px] font-black text-slate-500 uppercase mb-1">Passos/Min</p>
+                    <p class="text-xl font-black text-white italic">172 <span
+                            class="text-[9px] text-emerald-500">SPM</span></p>
+                </div>
+                <div class="glass p-5 rounded-3xl border-b-2 border-orange-500">
+                    <p class="text-[8px] font-black text-slate-500 uppercase mb-1">Elevação</p>
+                    <p class="text-xl font-black text-white italic">84 <span class="text-[9px] text-orange-500">M</span>
+                    </p>
+                </div>
+            </div>
+            <div class="glass p-6 rounded-3xl border-l-4 border-emerald-500">
+                <p class="text-[10px] font-black text-emerald-500 uppercase mb-1">IA Insights</p>
+                <p class="text-xs font-bold text-slate-200 leading-relaxed italic">"Seu desempenho em subidas melhorou
+                    12% em relação à última semana. Mantenha o foco!"</p>
             </div>
         </div>
 
         <!-- NAVEGAÇÃO -->
-        <nav class="nav-bar">
+        <nav class="nav-bar" id="main-nav">
             <div class="nav-item active-tab" onclick="switchTab('inicio')"><i data-lucide="home"></i><span>Início</span>
             </div>
             <div class="nav-item" onclick="switchTab('mapa')"><i data-lucide="map"></i><span>Mapa</span></div>
@@ -376,13 +370,31 @@
             </div>
         </nav>
 
-        <!-- MODAL DE PLANO (LISTA REAL) -->
+        <!-- MODAIS E CHAT -->
+        <div id="screen-chat" class="h-full hidden flex flex-col bg-[#020617] relative z-[100]">
+            <div class="p-6 flex items-center justify-between border-b border-white/5 bg-slate-950/80 backdrop-blur-md">
+                <button onclick="showScreen('tab-inicio')" class="p-3 glass rounded-2xl"><i data-lucide="chevron-left"
+                        class="w-5 h-5"></i></button>
+                <h2 class="text-sm font-black uppercase italic tracking-tighter">Coach IA</h2>
+                <div class="w-10"></div>
+            </div>
+            <div class="flex-1 overflow-y-auto p-6 space-y-4" id="chat-messages"></div>
+            <div class="p-6 bg-slate-950">
+                <div class="flex gap-2">
+                    <input type="text" id="chat-input" placeholder="Pergunte ao Coach..."
+                        class="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-xs focus:outline-none focus:border-emerald-500">
+                    <button onclick="sendAIResponse()" class="p-4 bg-emerald-500 text-black rounded-2xl"><i
+                            data-lucide="send" class="w-5 h-5"></i></button>
+                </div>
+            </div>
+        </div>
+
         <div id="screen-week" class="h-full hidden flex flex-col bg-[#020617] relative z-[100] p-6 pt-0">
             <div
                 class="p-6 flex items-center justify-between border-b border-white/5 bg-slate-950/80 mb-4 ml-[-24px] mr-[-24px]">
                 <button onclick="showScreen('tab-inicio')" class="p-3 glass rounded-2xl"><i data-lucide="chevron-left"
                         class="w-5 h-5"></i></button>
-                <h2 class="text-sm font-black uppercase italic tracking-tighter">Meu Plano Semanal</h2>
+                <h2 class="text-sm font-black uppercase italic tracking-tighter">Plano Semanal</h2>
                 <div class="w-10"></div>
             </div>
             <div class="flex-1 overflow-y-auto space-y-4" id="weekly-plan-list"></div>
@@ -393,40 +405,37 @@
     <script>
         lucide.createIcons();
         let maps = {}, mapThemes = {}, routingCtrls = {};
-        let activePlannedRouteLine = null, currentRunPathLine = null;
-        let timerInterval, dist = 0, time = 0, pathCoords = [], currentPos = [-23.45, -46.53];
-        let isDrawing = false, plannedCoords = null;
+        let activeGpsPath = null, currentCoords = [-23.45, -46.53], pathHistory = [];
+        let timerId = null, totalTimeSeconds = 0, totalDistKm = 0, totalKcal = 0;
+        let chartInstance = null;
 
-        const weeklyPlanItems = [
-            { day: 'Segunda', title: 'Velocidade Maxima', km: '5', active: true },
-            { day: 'Terça', title: 'Rodagem Adaptacao', km: '6', active: false },
-            { day: 'Quarta', title: 'Base Cardiorrespiratoria', km: '8', active: false },
-            { day: 'Quinta', title: 'Descanso Ativo', km: '3', active: false },
-            { day: 'Sexta', title: 'Tempo Run Forte', km: '5', active: false },
-            { day: 'Sábado', title: 'Longão Trail', km: '14', active: false },
-            { day: 'Domingo', title: 'Fechamento & Descanso', km: '0', active: false }
+        const allMissões = [
+            { id: '1', title: 'Primeiros 5K', desc: 'Complete sua primeira corrida de 5km.', pts: 250 },
+            { id: '2', title: 'Explorador Urbano', desc: 'Corra em 3 rotas diferentes.', pts: 400 },
+            { id: '3', title: 'Sempre Ativo', desc: 'Mantenha uma sequência de 3 dias.', pts: 300 }
         ];
 
-        function init() {
+        function initApp() {
             if ("geolocation" in navigator) {
                 navigator.geolocation.watchPosition(pos => {
-                    currentPos = [pos.coords.latitude, pos.coords.longitude];
-                    updateUserMarkerLayer(currentPos);
-                });
+                    currentCoords = [pos.coords.latitude, pos.coords.longitude];
+                    updateAllMarkers(currentCoords);
+                }, null, { enableHighAccuracy: true });
             }
+            renderChallenges();
             renderWeeklyPlan();
         }
 
-        function initMapOnce(id, container) {
+        function createOrGetMap(id, container) {
             if (maps[id]) return maps[id];
-            const m = L.map(container, { zoomControl: false, attributionControl: false }).setView(currentPos, 16);
+            const m = L.map(container, { zoomControl: false, attributionControl: false }).setView(currentCoords, 16);
             mapThemes[id] = 'dark';
-            applyMapStyle(m, 'dark');
+            setMapStyle(m, 'dark');
             maps[id] = m;
             return m;
         }
 
-        function applyMapStyle(m, theme) {
+        function setMapStyle(m, theme) {
             m.eachLayer(l => { if (l instanceof L.TileLayer) m.removeLayer(l); });
             const url = theme === 'dark'
                 ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
@@ -436,10 +445,10 @@
 
         function toggleMapTheme(id) {
             mapThemes[id] = mapThemes[id] === 'dark' ? 'light' : 'dark';
-            applyMapStyle(maps[id], mapThemes[id]);
+            setMapStyle(maps[id], mapThemes[id]);
         }
 
-        function updateUserMarkerLayer(pos) {
+        function updateAllMarkers(pos) {
             Object.values(maps).forEach(m => {
                 if (!m.uMarker) {
                     const icon = L.divIcon({ className: 'user-marker', iconSize: [14, 14] });
@@ -456,23 +465,13 @@
             target.classList.add('active-screen');
 
             const ids = ['inicio', 'mapa', 'correr', 'desafios', 'progresso'];
-            document.querySelectorAll('.nav-bar .nav-item')[ids.indexOf(tabId)].classList.add('active-tab');
+            const navItems = document.querySelectorAll('.nav-bar .nav-item');
+            if (navItems[ids.indexOf(tabId)]) navItems[ids.indexOf(tabId)].classList.add('active-tab');
 
-            if (tabId === 'mapa') initMapOnce('map-route', 'map-route').on('click', onMapClick);
-            if (tabId === 'correr') {
-                const m = initMapOnce('map', 'map');
-                if (plannedCoords) {
-                    if (activePlannedRouteLine) m.removeLayer(activePlannedRouteLine);
-                    activePlannedRouteLine = L.polyline(plannedCoords, { color: 'rgba(34, 197, 94, 0.4)', weight: 8, dashArray: '10, 10' }).addTo(m);
-                    document.getElementById('btn-clear-run-route').style.display = 'block';
-                    m.fitBounds(activePlannedRouteLine.getBounds());
-                } else {
-                    document.getElementById('btn-clear-run-route').style.display = 'none';
-                }
-                // Garantir que o botão Iniciar apareça
-                document.getElementById('start-btn-container').classList.remove('hidden');
-                document.getElementById('running-ui').classList.add('hidden');
-            }
+            if (tabId === 'mapa') createOrGetMap('map-route', 'map-route');
+            if (tabId === 'correr') createOrGetMap('map', 'map').invalidateSize();
+            if (tabId === 'progresso') initChart();
+            if (tabId === 'desafios') renderChallenges();
             lucide.createIcons();
         }
 
@@ -482,139 +481,109 @@
             lucide.createIcons();
         }
 
-        // LÓGICA DE IA (RESPOSTAS CONTEXTUAIS)
-        function sendAIResponse() {
-            const input = document.getElementById('chat-input');
-            if (!input.value) return;
-            const msg = input.value.toLowerCase();
-            const chat = document.getElementById('chat-messages');
-            chat.innerHTML += `<div class="flex justify-end"><div class="bg-white/10 p-4 rounded-3xl rounded-tr-none text-xs font-bold italic text-slate-300 max-w-[80%] uppercase">${input.value}</div></div>`;
-            input.value = '';
-
-            let response = "Interessante, Marcio! Como seu Coach, recomendo focar na constância hoje.";
-            if (msg.includes("pace")) response = "Para baixar o pace, recomendo treinos de tiro e fortalecimento de glúteos e panturrilhas.";
-            if (msg.includes("dor")) response = "Se houver dor constante, pare imediatamente. Recomendo gelo e repouso ativo.";
-            if (msg.includes("água") || msg.includes("beber")) response = "Mantenha a hidratação! 35ml por kg corporal é o ideal para corredores de elite.";
-            if (msg.includes("plano")) response = "Seu plano desta semana foca em resistência. Siga as distâncias sugeridas na aba Meu Plano.";
-            if (msg.includes("guarulhos")) response = "Em Guarulhos, recomendo o Bosque Maia para treinos de asfalto plano.";
-
-            setTimeout(() => {
-                chat.innerHTML += `<div class="flex gap-3"><div class="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 text-[10px] font-black">IA</div><div class="glass p-4 rounded-3xl rounded-tl-none text-xs font-bold italic text-emerald-500 max-w-[80%] uppercase text-left">${response}</div></div>`;
-                chat.scrollTop = chat.scrollHeight;
-            }, 800);
-        }
-
-        // MAPA ROTEAMENTO
-        function suggestStreetRoute() {
-            const m = maps['map-route'];
-            const start = L.latLng(currentPos);
-            const end = L.latLng(currentPos[0] + 0.005, currentPos[1] + 0.005);
-            if (routingCtrls['map-route']) m.removeControl(routingCtrls['map-route']);
-            routingCtrls['map-route'] = L.Routing.control({
-                waypoints: [start, end],
-                createMarker: () => null,
-                lineOptions: { styles: [{ color: '#22C55E', weight: 8 }] }
-            }).on('routesfound', e => { plannedCoords = e.routes[0].coordinates; }).addTo(m);
-            document.getElementById('route-menu').classList.add('hidden');
-            document.getElementById('route-confirm').classList.remove('hidden');
-        }
-
-        function startDrawingStreetRoute() {
-            isDrawing = true;
-            alert("Toque no mapa para definir o seu DESTINO real.");
-        }
-
-        function onMapClick(e) {
-            if (!isDrawing) return;
-            const m = maps['map-route'];
-            const start = L.latLng(currentPos);
-            const end = e.latlng;
-            if (routingCtrls['map-route']) m.removeControl(routingCtrls['map-route']);
-            routingCtrls['map-route'] = L.Routing.control({
-                waypoints: [start, end],
-                createMarker: () => null,
-                lineOptions: { styles: [{ color: '#22C55E', weight: 8 }] }
-            }).on('routesfound', e => { plannedCoords = e.routes[0].coordinates; }).addTo(m);
-            isDrawing = false;
-            document.getElementById('route-menu').classList.add('hidden');
-            document.getElementById('route-confirm').classList.remove('hidden');
-        }
-
-        function resetMapRoute() {
-            const m = maps['map-route'];
-            if (routingCtrls['map-route']) m.removeControl(routingCtrls['map-route']);
-            plannedCoords = null;
-            document.getElementById('route-menu').classList.remove('hidden');
-            document.getElementById('route-confirm').classList.add('hidden');
-        }
-
-        function confirmAndToRunTab() { switchTab('correr'); }
-
-        function clearPlannedRunRoute() {
-            const m = maps['map'];
-            if (activePlannedRouteLine) { m.removeLayer(activePlannedRouteLine); activePlannedRouteLine = null; }
-            plannedCoords = null;
-            document.getElementById('btn-clear-run-route').style.display = 'none';
-            m.setView(currentPos, 16);
-        }
-
-        // CORRIDA ATIVA
-        function startRunNow() {
+        function startGpsSession() {
             document.getElementById('start-btn-container').classList.add('hidden');
-            document.getElementById('bottom-nav').style.transform = 'translateY(100px)';
             document.getElementById('running-ui').classList.remove('hidden');
-            const m = maps['map'];
-            currentRunPathLine = L.polyline([], { color: '#22C55E', weight: 8, opacity: 1 }).addTo(m);
-            pathCoords = [[currentPos[0], currentPos[1]]];
-            time = 0; dist = 0;
+            document.getElementById('main-nav').style.transform = 'translateY(100px)';
 
-            timerInterval = setInterval(() => {
-                time++; dist += 0.004;
-                currentPos[0] += (Math.random() - 0.5) * 0.0001;
-                currentPos[1] += (Math.random() - 0.5) * 0.0001;
-                pathCoords.push([...currentPos]);
-                currentRunPathLine.setLatLngs(pathCoords);
-                m.panTo(currentPos);
-                updateUserMarkerLayer(currentPos);
-                updateMetricsUI();
+            totalTimeSeconds = 0; totalDistKm = 0; totalKcal = 0;
+            pathHistory = [[currentCoords[0], currentCoords[1]]];
+            const m = maps['map'];
+
+            if (activeGpsPath) m.removeLayer(activeGpsPath);
+            activeGpsPath = L.polyline(pathHistory, { color: '#22C55E', weight: 8, opacity: 1 }).addTo(m);
+
+            timerId = setInterval(() => {
+                totalTimeSeconds++;
+                totalDistKm += 0.003;
+                totalKcal = Math.floor(totalDistKm * 62);
+
+                currentCoords[0] += (Math.random() - 0.5) * 0.0001;
+                currentCoords[1] += (Math.random() - 0.5) * 0.0001;
+                pathHistory.push([...currentCoords]);
+                activeGpsPath.setLatLngs(pathHistory);
+                m.panTo(currentCoords);
+                updateAllMarkers(currentCoords);
+
+                document.getElementById('time-display').innerText = new Date(totalTimeSeconds * 1000).toISOString().substr(14, 5);
+                document.getElementById('dist-display').innerText = totalDistKm.toFixed(2);
+                document.getElementById('kcal-display').innerText = totalKcal;
             }, 1000);
         }
 
-        function updateMetricsUI() {
-            document.getElementById('time-display').innerText = new Date(time * 1000).toISOString().substr(14, 5);
-            document.getElementById('dist-display').innerText = dist.toFixed(2);
-            let pace = (time / 60) / dist;
-            if (dist > 0) {
-                let mt = Math.floor(pace), st = Math.round((pace % 1) * 60);
-                document.getElementById('pace-display').innerText = `${mt}'${st.toString().padStart(2, '0')}"`;
-            }
+        function renderChallenges() {
+            const list = document.getElementById('all-challenges-list');
+            if (!list) return;
+            list.innerHTML = '';
+            allMissões.forEach(m => {
+                list.innerHTML += `
+                <div class="glass p-6 rounded-[32px] border-l-4 border-emerald-500 shadow-lg">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-xl font-black italic uppercase italic tracking-tighter">${m.title}</h3>
+                        <span class="bg-emerald-500/10 text-emerald-500 text-[10px] font-black px-3 py-1 rounded-full border border-emerald-500/20">+${m.pts} pts</span>
+                    </div>
+                    <p class="text-xs text-slate-400 font-medium italic mb-6 leading-relaxed">${m.desc}</p>
+                    <button class="w-full py-3 bg-emerald-500 text-black font-black rounded-2xl uppercase text-[10px] italic shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">Participar</button>
+                </div>
+            `;
+            });
         }
 
-        function finishRun() {
-            clearInterval(timerInterval);
-            document.getElementById('screen-share').classList.remove('hidden');
-            document.getElementById('f-dist').innerText = dist.toFixed(2);
-            document.getElementById('f-time').innerText = document.getElementById('time-display').innerText;
-            document.getElementById('f-pace').innerText = document.getElementById('pace-display').innerText;
+        function initChart() {
+            const canvas = document.getElementById('progressChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'],
+                    datasets: [{
+                        label: 'KM',
+                        data: [5, 6.5, 8, 4, 7, 12, 0],
+                        backgroundColor: '#22c55e',
+                        borderRadius: 12,
+                        barThickness: 16
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10, weight: 'bold' } } },
+                        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 10, weight: 'bold' } } }
+                    }
+                }
+            });
         }
 
         function renderWeeklyPlan() {
             const list = document.getElementById('weekly-plan-list');
+            if (!list) return;
             list.innerHTML = '';
-            weeklyPlanItems.forEach(p => {
+            [
+                { day: 'Segunda', title: 'Intervalado 5K', km: '5.0' },
+                { day: 'Terça', title: 'Rodagem Leve', km: '6.5' },
+                { day: 'Quarta', title: 'Treino de Base', km: '8.0' },
+                { day: 'Quinta', title: 'Tiros 400m', km: '4.0' },
+                { day: 'Sexta', title: 'Tempo Run', km: '7.0' },
+                { day: 'Sábado', title: 'Longão Semanal', km: '12.0' },
+                { day: 'Domingo', title: 'Descanso Ativo', km: '0' }
+            ].forEach(p => {
                 list.innerHTML += `
-                <div class="p-5 glass rounded-2xl border-l-4 ${p.km === '0' ? 'border-slate-800 opacity-50' : 'border-emerald-500'} text-left">
+                <div class="p-5 glass rounded-2xl border-l-4 ${p.km === '0' ? 'border-slate-800 opacity-50' : 'border-emerald-500'}">
                     <p class="text-[8px] font-bold text-slate-500 uppercase mb-1">${p.day}</p>
                     <div class="flex justify-between items-center">
                         <h4 class="font-black italic text-lg uppercase">${p.title}</h4>
-                        <span class="text-sm font-black text-emerald-500">${p.km > 0 ? p.km + 'km' : 'DESC.'}</span>
+                        <span class="text-sm font-black text-emerald-500">${p.km > 0 ? p.km + 'km' : 'DESC'}</span>
                     </div>
                 </div>
             `;
             });
         }
 
-        init();
+        initApp();
     </script>
 </body>
 
