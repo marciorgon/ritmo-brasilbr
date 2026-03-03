@@ -4,13 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ritmo Brasil (RB) - Pro v2.1 Elite</title>
+    <title>Ritmo Brasil (RB) - Pro v2.2 Final</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -147,6 +153,20 @@
             align-items: center;
             cursor: pointer;
         }
+
+        /* Insta Card Styling */
+        .insta-gradient {
+            background: linear-gradient(135deg, #020617 0%, #064c31 100%);
+        }
+
+        .br-badge {
+            background: #FFCC00;
+            color: #000;
+            font-weight: 900;
+            padding: 2px 8px;
+            border-radius: 4px;
+            transform: skewX(-10deg);
+        }
     </style>
 </head>
 
@@ -160,14 +180,26 @@
                 <img src="logo.png" alt="RB" class="w-10 h-10 object-contain"
                     onerror="this.src='https://api.dicebear.com/7.x/initials/svg?seed=RB&backgroundColor=22c55e'">
                 <div class="text-right">
-                    <p class="text-[8px] text-slate-500 uppercase tracking-widest font-black">Nível 12</p>
-                    <p class="font-bold text-lg text-emerald-500 italic">Ritmo Marcio ⚡</p>
+                    <p class="text-[8px] text-slate-500 uppercase tracking-widest font-black italic">Ritmo Brasil</p>
+                    <p class="font-bold text-lg text-emerald-500 italic">Atleta Marcio 🏃</p>
                 </div>
             </div>
             <div class="p-6">
+                <!-- Desafio em Andamento (Aparece se aceito) -->
+                <div id="home-challenge" class="hidden mb-6 p-4 glass rounded-3xl border-l-4 border-yellow-500">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-[9px] font-black text-yellow-500 uppercase">Desafio Ativo</span>
+                        <span class="text-[10px] font-bold" id="home-challenge-progress">0%</span>
+                    </div>
+                    <h4 class="font-black italic text-sm mb-2" id="home-challenge-name">NOME DO DESAFIO</h4>
+                    <div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
+                        <div class="bg-yellow-500 h-full rounded-full" id="home-challenge-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+
                 <div class="glass rounded-3xl p-6 border-l-4 border-emerald-500 mb-6">
                     <div class="flex justify-between items-center mb-4">
-                        <span class="text-[10px] font-black text-slate-400 uppercase">Pontos RB</span>
+                        <span class="text-[10px] font-black text-slate-400 uppercase">Pontos Acumulados</span>
                         <span class="text-xl font-black text-emerald-500">2,850 pts</span>
                     </div>
                     <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
@@ -176,8 +208,9 @@
                 </div>
                 <div class="bg-slate-900/60 rounded-3xl p-6 border border-white/5 mb-6">
                     <span class="text-[9px] font-black text-emerald-500 uppercase italic">Próximo Treino</span>
-                    <h3 class="text-2xl font-black italic tracking-tighter mb-1 mt-1 uppercase">Intervalado 5KM</h3>
-                    <p class="text-xs text-slate-400 mb-6 font-medium">Hoje às 18:30 • Parque Ibirapuera</p>
+                    <h3 class="text-2xl font-black italic tracking-tighter mb-1 mt-1 uppercase">Intervalado de
+                        Velocidade</h3>
+                    <p class="text-xs text-slate-400 mb-6 font-medium">Foco: Performance Guarulhos</p>
                     <button onclick="switchTab('correr')"
                         class="w-full py-4 bg-emerald-500 text-black font-black rounded-2xl uppercase italic tracking-tighter">Começar
                         Agora</button>
@@ -190,10 +223,10 @@
             <div id="map-route" class="absolute inset-0 z-0 dark-map"></div>
             <div class="relative z-10 p-6 flex flex-col h-full pointer-events-none">
                 <div class="glass p-5 rounded-3xl pointer-events-auto bg-slate-950/90 mt-12">
-                    <h3 class="text-sm font-black italic mb-4 uppercase">Explorar Rotas</h3>
+                    <h3 class="text-sm font-black italic mb-4 uppercase text-emerald-500">Planejar Rota</h3>
                     <button
-                        class="w-full bg-emerald-500 text-black py-3 rounded-2xl font-black text-xs uppercase tracking-tighter">Sugerir
-                        Rota saindo daqui</button>
+                        class="w-full bg-emerald-500 text-black py-3 rounded-2xl font-black text-xs uppercase tracking-tighter">Traçar
+                        novo percurso</button>
                 </div>
             </div>
         </div>
@@ -229,48 +262,65 @@
 
         <!-- TELA DESAFIOS -->
         <div id="tab-desafios" class="tab-content p-6 scroll-hide">
-            <h2 class="text-3xl font-black italic mb-8 mt-6">DESAFIOS RB</h2>
-            <div class="glass p-6 rounded-[32px] border-l-4 border-yellow-500 relative">
-                <h3 class="text-xl font-black italic mb-2">Exterminador de 5k</h3>
-                <p class="text-xs text-slate-400">Complete 3 treinos de 5km nesta semana para ganhar +500pts.</p>
+            <h2 class="text-3xl font-black italic mb-8 mt-6 uppercase">Desafios RB</h2>
+            <div class="space-y-4">
+                <div class="glass p-5 rounded-[32px] border-l-4 border-emerald-500">
+                    <p class="text-[8px] font-black text-emerald-500 uppercase mb-2">Iniciante</p>
+                    <h3 class="text-lg font-black italic mb-1 uppercase">Primeiros 5K</h3>
+                    <p class="text-xs text-slate-400 mb-4 font-medium">Complete seu primeiro treino de 5km.</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-black text-emerald-500 italic">+200 pts</span>
+                        <button onclick="acceptChallenge('Primeiros 5K', 200)"
+                            class="bg-emerald-500 text-black px-5 py-2 rounded-full font-black text-[10px] uppercase">Participar</button>
+                    </div>
+                </div>
+
+                <div class="glass p-5 rounded-[32px] border-l-4 border-yellow-500">
+                    <p class="text-[8px] font-black text-yellow-500 uppercase mb-2">Intermediário</p>
+                    <h3 class="text-lg font-black italic mb-1 uppercase">Guerreiro da Semana</h3>
+                    <p class="text-xs text-slate-400 mb-4 font-medium">Corra 15km acumulados em 7 dias.</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-black text-yellow-500 italic">+500 pts</span>
+                        <button onclick="acceptChallenge('Guerreiro da Semana', 500)"
+                            class="bg-emerald-500 text-black px-5 py-2 rounded-full font-black text-[10px] uppercase">Participar</button>
+                    </div>
+                </div>
+
+                <div class="glass p-5 rounded-[32px] border-l-4 border-blue-500">
+                    <p class="text-[8px] font-black text-blue-500 uppercase mb-2">Elite</p>
+                    <h3 class="text-lg font-black italic mb-1 uppercase">Maratonista RB</h3>
+                    <p class="text-xs text-slate-400 mb-4 font-medium">Complete 42km totais no mês de Março.</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-black text-blue-500 italic">+1500 pts</span>
+                        <button onclick="acceptChallenge('Maratonista RB', 1500)"
+                            class="bg-emerald-500 text-black px-5 py-2 rounded-full font-black text-[10px] uppercase">Participar</button>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- TELA PROGRESSO (INTERFACE v2.1 + SOLICITAÇÃO) -->
+        <!-- TELA PROGRESSO -->
         <div id="tab-progresso" class="tab-content p-6 scroll-hide">
-            <h2 class="text-3xl font-black italic mb-8 mt-6 uppercase">Progresso</h2>
-            <div class="flex justify-between bg-slate-900/50 p-1 rounded-2xl mb-6">
-                <button onclick="updateChart('dia')" id="btn-dia"
-                    class="flex-1 py-2 text-[10px] font-black uppercase text-emerald-500 bg-white/5 rounded-xl">Dia</button>
-                <button onclick="updateChart('semana')" id="btn-semana"
-                    class="flex-1 py-2 text-[10px] font-black uppercase text-slate-500">Semana</button>
-                <button onclick="updateChart('mes')" id="btn-mes"
-                    class="flex-1 py-2 text-[10px] font-black uppercase text-slate-500">Mês</button>
-            </div>
+            <h2 class="text-3xl font-black italic mb-8 mt-6 uppercase">MEU STATUS</h2>
             <div class="glass p-5 rounded-3xl mb-8 h-[200px]">
                 <canvas id="progressChart"></canvas>
             </div>
-
-            <!-- Análises Solicitadas: Carga, Eficiência, Sono -->
-            <div class="space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="glass p-4 rounded-2xl">
-                        <p class="text-[8px] text-slate-500 font-bold uppercase mb-1">Carga de Treino</p>
-                        <p class="text-xl font-black text-yellow-500">Ideal</p>
-                    </div>
-                    <div class="glass p-4 rounded-2xl">
-                        <p class="text-[8px] text-slate-500 font-bold uppercase mb-1">Recuperação</p>
-                        <p class="text-xl font-black text-blue-400">92%</p>
-                    </div>
+            <!-- Análises Adicionais -->
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="glass p-4 rounded-2xl">
+                    <p class="text-[8px] text-slate-400 font-bold uppercase mb-1">Carga</p>
+                    <p class="text-xl font-black text-emerald-500 italic">IDEAL</p>
                 </div>
-                <div class="p-5 glass rounded-[20px] border-l-2 border-emerald-500">
-                    <p class="text-[8px] font-black text-emerald-500 uppercase mb-1 tracking-widest">Análise do
-                        Treinador IA</p>
-                    <p class="text-xs font-medium text-slate-300 italic leading-relaxed" id="progresso-feedback">
-                        "Sua eficiência mecânica melhorou 5% nos últimos treinos. Fique atento à hidratação para manter
-                        esse ritmo."
-                    </p>
+                <div class="glass p-4 rounded-2xl">
+                    <p class="text-[8px] text-slate-400 font-bold uppercase mb-1">Fadiga</p>
+                    <p class="text-xl font-black text-red-500 italic">BAIXA</p>
                 </div>
+            </div>
+            <div class="p-5 glass rounded-[24px] border-l-4 border-emerald-500">
+                <p class="text-[8px] font-black text-emerald-500 uppercase mb-1 italic tracking-widest">Treinador IA</p>
+                <p class="text-xs font-bold text-slate-200 italic leading-relaxed">
+                    "Consistência impecável, Marcio. Seu índice de performance em Guarulhos subiu 4%."
+                </p>
             </div>
         </div>
 
@@ -287,52 +337,81 @@
             </div>
         </nav>
 
-        <!-- SHARE OVERLAY (INSTAGRAMÁVEL + RELATÓRIO IA SOLICITADO) -->
+        <!-- SHARE OVERLAY (Totalmente Instagramável) -->
         <div id="screen-share"
-            class="absolute inset-0 z-[200] hidden flex flex-col p-6 bg-black overflow-y-auto scroll-hide">
+            class="absolute inset-0 z-[200] hidden flex flex-col p-6 bg-[#020617] overflow-y-auto scroll-hide">
 
-            <!-- Bloco de Mensagem da IA Solicitado -->
-            <div class="mb-6 p-5 glass rounded-3xl border border-emerald-500/30">
+            <!-- Feedback da IA Premium -->
+            <div class="mb-6 p-6 glass rounded-[32px] border border-emerald-500/30 shadow-2xl shadow-emerald-500/5">
                 <div class="flex items-center gap-2 mb-2">
-                    <i data-lucide="check-circle" class="w-4 h-4 text-emerald-500"></i>
-                    <h3 class="text-sm font-black italic text-emerald-500" id="ai-congrats">PARABÉNS, MARCIO!</h3>
+                    <i data-lucide="star" class="w-4 h-4 text-emerald-500 fill-emerald-500"></i>
+                    <h3 class="text-sm font-black italic text-emerald-500 uppercase" id="ai-congrats">INCRÍVEL, MARCIO!
+                    </h3>
                 </div>
-                <p class="text-xs text-white leading-tight font-medium mb-3" id="ai-report-text">Sua corrida de hoje foi
-                    excepcional. Você manteve um ritmo constante e superou sua meta de pace!</p>
-                <div class="bg-white/5 p-3 rounded-xl">
-                    <p class="text-[8px] font-black text-slate-500 uppercase">Dica do Treinador</p>
-                    <p class="text-[10px] text-white italic" id="ai-tip-text">Tente manter os braços mais relaxados nos
-                        próximos kms finais.</p>
+                <p class="text-xs text-white leading-snug font-bold mb-4" id="ai-report-text">Alta performance
+                    detectada. Seu pace final foi 4.2% superior à média da semana.</p>
+                <div class="bg-emerald-500/10 p-3 rounded-2xl border border-emerald-500/20">
+                    <p class="text-[7px] font-black text-emerald-500 uppercase mb-1 tracking-widest">RitmoCoach IA Tip
+                    </p>
+                    <p class="text-[10px] text-white italic font-medium" id="ai-tip-text">"Hidrate-se com 500ml agora.
+                        Seu corpo precisa repor para o treino de amanhã."</p>
                 </div>
             </div>
 
-            <div class="flex-1 rounded-[45px] relative overflow-hidden flex flex-col p-8 mb-4 shadow-2xl shadow-emerald-500/10"
-                style="background: linear-gradient(135deg, #020617 0%, #064c31 100%);">
-                <div class="absolute inset-x-0 top-0 h-[50%] z-0 dark-map opacity-50" id="map-share"></div>
-                <div class="absolute inset-0 z-1 bg-gradient-to-b from-transparent via-[#020617]/50 to-[#020617]"></div>
-                <div class="flex-1 flex flex-col justify-end items-center text-center relative z-10">
+            <!-- O CARD PARA O INSTAGRAM -->
+            <div id="insta-card"
+                class="aspect-[9/12] rounded-[45px] relative overflow-hidden flex flex-col p-8 mb-6 shadow-2xl insta-gradient border border-white/5">
+                <div class="absolute inset-x-0 top-0 h-[55%] z-0 dark-map opacity-60" id="map-share"></div>
+                <div class="absolute inset-0 z-1 bg-gradient-to-b from-transparent via-[#020617]/40 to-[#020617]"></div>
+
+                <!-- Branding Premium -->
+                <div class="flex justify-between items-start relative z-10">
+                    <div class="flex items-center gap-2">
+                        <img src="logo.png" class="w-10 h-10 object-contain shadow-lg"
+                            onerror="this.src='https://api.dicebear.com/7.x/initials/svg?seed=RB&backgroundColor=22c55e'">
+                        <div class="flex flex-col">
+                            <span class="font-black italic text-[11px] tracking-tighter leading-none">RITMO
+                                BRASIL</span>
+                            <span class="text-[7px] font-bold text-slate-400 uppercase tracking-widest mt-1">Guarulhos
+                                City</span>
+                        </div>
+                    </div>
+                    <div class="br-badge text-[9px] uppercase italic">IA VERIFIED 🇧🇷</div>
+                </div>
+
+                <!-- Métricas Centrais -->
+                <div class="flex-1 flex flex-col justify-end items-center text-center relative z-10 pb-4">
+                    <div class="w-16 h-1 bg-emerald-500/50 rounded-full mb-8"></div>
                     <h2
-                        class="text-6xl font-black italic tracking-tighter text-white uppercase italic leading-none mb-4">
-                        Elite</h2>
-                    <div class="grid grid-cols-3 gap-6 w-full mt-6 bg-white/5 py-4 px-2 rounded-3xl backdrop-blur-md">
+                        class="text-7xl font-black italic tracking-tighter text-white uppercase italic leading-[0.85] mb-8">
+                        RITMO<br><span class="text-emerald-500">MÁXIMO</span></h2>
+
+                    <div
+                        class="grid grid-cols-3 gap-8 w-full bg-black/30 py-6 px-4 rounded-[32px] backdrop-blur-xl border border-white/5">
                         <div>
-                            <p class="text-xl font-black italic" id="f-dist">0.00</p>
-                            <p class="text-[7px] font-bold text-slate-500 text-uppercase">KM</p>
+                            <p class="text-2xl font-black italic text-white" id="f-dist">0.00</p>
+                            <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">KM</p>
                         </div>
                         <div>
-                            <p class="text-xl font-black italic" id="f-time">00:00</p>
-                            <p class="text-[7px] font-bold text-slate-500 text-uppercase">TIME</p>
+                            <p class="text-2xl font-black italic text-white" id="f-time">00:00</p>
+                            <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">TEMPO</p>
                         </div>
                         <div>
-                            <p class="text-xl font-black italic text-emerald-500" id="f-pace">0'00"</p>
-                            <p class="text-[7px] font-bold text-slate-500 text-uppercase">PACE</p>
+                            <p class="text-2xl font-black italic text-emerald-500" id="f-pace">0'00"</p>
+                            <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">PACE</p>
                         </div>
                     </div>
                 </div>
             </div>
-            <button onclick="location.reload()"
-                class="w-full py-5 bg-white text-black font-black rounded-3xl uppercase tracking-tighter italic">Voltar
-                ao Início</button>
+
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="location.reload()"
+                    class="py-4 glass rounded-3xl font-black uppercase text-[10px] tracking-widest text-slate-400">Página
+                    Inicial</button>
+                <button
+                    class="py-4 bg-emerald-500 text-black rounded-3xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-emerald-500/20 active:scale-95 transition-all">Baixar
+                    Card</button>
+            </div>
         </div>
 
     </div>
@@ -350,6 +429,14 @@
             if (tabId === 'correr') initMapRun();
             if (tabId === 'progresso') initChart();
             lucide.createIcons();
+        }
+
+        function acceptChallenge(name, pts) {
+            const homeDiv = document.getElementById('home-challenge');
+            document.getElementById('home-challenge-name').innerText = name.toUpperCase();
+            homeDiv.classList.remove('hidden');
+            alert(`Desafio "${name}" aceito! Progresso agora visível na tela inicial.`);
+            switchTab('inicio');
         }
 
         function initMapRun() {
@@ -389,23 +476,19 @@
         function finishRun() {
             clearInterval(timerInterval);
             document.getElementById('screen-share').classList.remove('hidden');
-            document.getElementById('f-dist').innerText = dist.toFixed(2);
-            document.getElementById('f-time').innerText = document.getElementById('time-display').innerText;
-            document.getElementById('f-pace').innerText = document.getElementById('pace-display').innerText;
 
-            // Logica de Mensagem IA
-            const reports = [
-                "Você destruiu no pace hoje! Sua evolução é visível.",
-                "Consistência incrível em Guarulhos. Sua mecânica de corrida está cada vez mais eficiente.",
-                "Treino brabo concluído. Seus pontos subiram e sua resistência está 5% melhor."
-            ];
-            const tips = [
-                "Dica: Hidrate-se bem. Reponha eletrólitos nos próximos 30 minutos.",
-                "Dica: Faça um alongamento leve nas panturrilhas hoje à noite.",
-                "Dica: Tente manter a cadência acima de 170 spm no próximo treino."
-            ];
-            document.getElementById('ai-report-text').innerText = reports[Math.floor(Math.random() * reports.length)];
-            document.getElementById('ai-tip-text').innerText = tips[Math.floor(Math.random() * tips.length)];
+            // Update both Post-AI and Share Card metrics
+            const fDist = dist.toFixed(2);
+            const fTime = document.getElementById('time-display').innerText;
+            const fPace = document.getElementById('pace-display').innerText;
+
+            document.querySelectorAll('#f-dist').forEach(el => el.innerText = fDist);
+            document.querySelectorAll('#f-time').forEach(el => el.innerText = fTime);
+            document.querySelectorAll('#f-pace').forEach(el => el.innerText = fPace);
+
+            // AI Logic
+            const msgs = ["Sensacional!", "Treino Brabo!", "Ritmo Monstro!", "Meta Batida!"];
+            document.getElementById('ai-congrats').innerText = msgs[Math.floor(Math.random() * msgs.length)].toUpperCase();
 
             setTimeout(() => {
                 if (!mapShare) {
@@ -416,22 +499,12 @@
             }, 300);
         }
 
-        function updateChart(type) {
-            const btns = ['btn-dia', 'btn-semana', 'btn-mes'];
-            btns.forEach(b => {
-                document.getElementById(b).classList.remove('text-emerald-500', 'bg-white/5');
-                document.getElementById(b).classList.add('text-slate-500');
-            });
-            document.getElementById('btn-' + type).classList.add('text-emerald-500', 'bg-white/5');
-            initChart(type);
-        }
-
-        function initChart(type = 'dia') {
+        function initChart() {
             const ctx = document.getElementById('progressChart').getContext('2d');
             if (chart) chart.destroy();
             chart = new Chart(ctx, {
                 type: 'bar',
-                data: { labels: ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'], datasets: [{ data: [5, 0, 6, 0, 10, 4, 12], backgroundColor: '#22C55E' }] },
+                data: { labels: ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'], datasets: [{ data: [5, 0, 6, 0, 10, 4, 12], backgroundColor: '#22C55E', borderRadius: 6 }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
             });
         }
