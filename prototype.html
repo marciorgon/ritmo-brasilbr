@@ -4,12 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ritmo Brasil (RB) - Pro v3.5 Ultra</title>
+    <title>Ritmo Brasil (RB) - Pro v3.6 Pro-Active</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Incluindo roteamento para seguir as ruas -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
     <script>
@@ -131,6 +135,7 @@
             align-items: center;
             cursor: pointer;
             backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .running-overlay {
@@ -184,7 +189,6 @@
             transform: translateY(0);
         }
 
-        /* User Marker Pulse */
         .user-marker {
             width: 14px;
             height: 14px;
@@ -208,6 +212,11 @@
                 box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
             }
         }
+
+        /* Ocultar controles do Leaflet Routing */
+        .leaflet-routing-container {
+            display: none;
+        }
     </style>
 </head>
 
@@ -229,8 +238,8 @@
 
                 <div class="glass rounded-3xl p-6 border-l-4 border-emerald-500">
                     <div class="flex justify-between items-center mb-4">
-                        <span
-                            class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Status</span>
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Minha
+                            Pontuação</span>
                         <span class="text-xl font-black text-emerald-500 leading-none">2,850 pts</span>
                     </div>
                     <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
@@ -241,29 +250,31 @@
                 <div class="bg-slate-900/60 rounded-3xl p-6 border border-white/5 relative">
                     <div class="flex items-center gap-2 mb-2">
                         <i data-lucide="zap" class="w-4 h-4 text-emerald-500"></i>
-                        <span class="text-[10px] font-black text-emerald-500 uppercase italic">Plano do Dia</span>
+                        <span class="text-[10px] font-black text-emerald-500 uppercase italic">Plano Semanal IA de
+                            Corrida</span>
                     </div>
                     <h3 class="text-2xl font-black italic tracking-tighter mb-4 uppercase">Intervalado 5KM</h3>
                     <div class="grid grid-cols-2 gap-3 mb-6">
                         <button onclick="showScreen('screen-week')"
-                            class="py-3 glass rounded-2xl text-[10px] font-bold uppercase text-slate-300">Meu
+                            class="py-3 glass rounded-2xl text-[10px] font-bold uppercase text-slate-300 active:bg-emerald-500/10">Meu
                             Plano</button>
                         <button onclick="showScreen('screen-calendar')"
                             class="py-3 glass rounded-2xl text-[10px] font-bold uppercase text-slate-300">Histórico</button>
                     </div>
                     <button onclick="switchTab('correr')"
-                        class="w-full py-4 bg-emerald-500 text-black font-black rounded-2xl uppercase italic tracking-tighter shadow-lg shadow-emerald-500/20">Iniciar
-                        Agora</button>
+                        class="w-full py-4 bg-emerald-500 text-black font-black rounded-2xl uppercase italic tracking-tighter shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">Iniciar
+                        Corrida Agora</button>
                 </div>
             </div>
         </div>
 
-        <!-- TELA CHAT IA COACH -->
-        <div id="screen-chat" class="h-full hidden flex flex-col bg-[#020617] relative z-[100] modal-up">
+        <!-- TELA DE CHAT -->
+        <div id="screen-chat"
+            class="h-full hidden flex flex-col bg-[#020617] relative z-[100] transition-all duration-300">
             <div class="p-6 flex items-center justify-between border-b border-white/5 bg-slate-950/80 backdrop-blur-md">
                 <button onclick="showScreen('tab-inicio')" class="p-3 glass rounded-2xl"><i data-lucide="chevron-left"
                         class="w-5 h-5"></i></button>
-                <h2 class="text-sm font-black uppercase italic tracking-tighter">Coach IA</h2>
+                <h2 class="text-sm font-black uppercase italic tracking-tighter">Perguntar ao Coach IA</h2>
                 <div class="w-10"></div>
             </div>
             <div class="flex-1 overflow-y-auto p-6 space-y-4" id="chat-messages">
@@ -272,14 +283,14 @@
                         class="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 text-[10px] font-black">
                         IA</div>
                     <div
-                        class="glass p-4 rounded-2xl rounded-tl-none text-xs font-bold italic text-emerald-500 max-w-[80%] uppercase">
-                        Diga Marcio! Como posso ajudar você?</div>
+                        class="glass p-4 rounded-2xl rounded-tl-none text-xs font-bold italic text-emerald-400 max-w-[80%] uppercase">
+                        Olá Marcio! Sou o RitmoCoach IA. Como posso te ajudar a melhorar seus kms hoje?</div>
                 </div>
             </div>
             <div class="p-6 bg-slate-950">
                 <div class="flex gap-2">
                     <input type="text" id="chat-input" placeholder="Escreva aqui..."
-                        class="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-xs focus:outline-none">
+                        class="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-xs focus:outline-none focus:border-emerald-500">
                     <button onclick="sendMessage()" class="p-4 bg-emerald-500 text-black rounded-2xl"><i
                             data-lucide="send" class="w-5 h-5"></i></button>
                 </div>
@@ -296,26 +307,26 @@
                 <div class="mt-auto pointer-events-auto flex flex-col gap-4 mb-2">
                     <div id="route-menu" class="glass p-6 rounded-[32px] bg-slate-950/90 border border-emerald-500/10">
                         <h3 class="text-xs font-black italic mb-4 uppercase text-emerald-500 tracking-widest">Opções de
-                            Percurso</h3>
+                            Mapa</h3>
                         <div id="map-buttons" class="space-y-3">
-                            <button onclick="suggestLiveRoute()"
-                                class="w-full bg-emerald-500 text-black py-4 rounded-2xl font-black text-xs uppercase tracking-tighter active:scale-95 transition-all">Sugerir
-                                Rota Local</button>
-                            <button onclick="startDrawingRoute()"
-                                class="w-full bg-white/5 border border-white/10 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-tighter">Traçar
-                                Trajeto Manual</button>
+                            <button onclick="suggestStreetRoute()"
+                                class="w-full bg-emerald-500 text-black py-4 rounded-2xl font-black text-xs uppercase tracking-tighter active:scale-95">Sugerir
+                                Rota Local (Ruas)</button>
+                            <button onclick="startDrawingStreetRoute()"
+                                class="w-full bg-white/5 border border-white/10 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-tighter">Marcar
+                                Dois Pontos (Ruas)</button>
                         </div>
                     </div>
 
                     <div id="route-confirm"
                         class="hidden glass p-6 rounded-[32px] bg-emerald-500 border border-white/10 flex flex-col items-center text-center">
-                        <h4 class="text-black font-black italic text-lg uppercase mb-4 tracking-tighter">Percurso
-                            Pronto!</h4>
+                        <h4 class="text-black font-black italic text-lg uppercase mb-4 tracking-tighter">Caminho Gerado!
+                        </h4>
                         <div class="flex gap-3 w-full">
-                            <button onclick="confirmRouteAndStart()"
+                            <button onclick="switchTab('correr')"
                                 class="flex-1 bg-black text-white py-4 rounded-2xl font-black text-[10px] uppercase">Iniciar
                                 Corrida</button>
-                            <button onclick="clearMap('map-route')"
+                            <button onclick="resetMapRoute()"
                                 class="flex-1 bg-black/10 text-black py-4 rounded-2xl font-black text-[10px] uppercase">Refazer</button>
                         </div>
                     </div>
@@ -333,15 +344,15 @@
                 <div class="stats-float shadow-2xl">
                     <div class="text-center">
                         <p class="text-lg font-black italic text-white" id="pace-display">0'00"</p>
-                        <p class="text-[7px] uppercase font-bold text-slate-500">PACE</p>
+                        <p class="text-[7px] uppercase font-bold text-slate-500">RITMO</p>
                     </div>
                     <div class="text-center">
                         <p class="text-lg font-black italic text-white" id="dist-display">0.00</p>
-                        <p class="text-[7px] uppercase font-bold text-slate-500">KM</p>
+                        <p class="text-[7px] uppercase font-bold text-slate-500">DISTÂNCIA</p>
                     </div>
                     <div class="text-center">
                         <p class="text-lg font-black italic text-white" id="time-display">00:00</p>
-                        <p class="text-[7px] uppercase font-bold text-slate-500">TIME</p>
+                        <p class="text-[7px] uppercase font-bold text-slate-500">TEMPO</p>
                     </div>
                     <div onclick="finishRun()" class="btn-stop"><i data-lucide="square"
                             class="w-5 h-5 fill-current"></i></div>
@@ -349,47 +360,62 @@
             </div>
 
             <div class="absolute inset-0 flex items-center justify-center z-[60]" id="start-btn-container">
-                <button onclick="switchTab('mapa')"
+                <button onclick="startRun()"
                     class="w-24 h-24 bg-emerald-500 text-black rounded-full font-black uppercase italic shadow-2xl shadow-emerald-500/50 flex flex-col items-center justify-center gap-1 active:scale-95">
-                    <i data-lucide="map-pin" class="w-8 h-8 fill-current"></i><span class="text-[8px]">Ver Mapa</span>
+                    <i data-lucide="play" class="w-8 h-8 fill-current"></i><span class="text-[8px]">Começar</span>
                 </button>
             </div>
         </div>
 
+        <!-- TELA MEU PLANO -->
+        <div id="screen-week"
+            class="h-full hidden flex flex-col bg-[#020617] relative z-[100] transition-all duration-300">
+            <div class="p-6 flex items-center justify-between border-b border-white/5 bg-slate-950/80">
+                <button onclick="showScreen('tab-inicio')" class="p-3 glass rounded-2xl"><i data-lucide="chevron-left"
+                        class="w-5 h-5"></i></button>
+                <h2 class="text-sm font-black uppercase italic tracking-tighter">Plano Semanal IA</h2>
+                <div class="w-10"></div>
+            </div>
+            <div class="flex-1 overflow-y-auto p-6 space-y-4" id="weekly-plan-list">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- TELA CALENDÁRIO -->
+        <div id="screen-calendar" class="h-full hidden flex flex-col bg-[#020617] relative z-[100]">
+            <div class="p-6 flex items-center justify-between border-b border-white/5 bg-slate-950/80">
+                <button onclick="showScreen('tab-inicio')" class="p-3 glass rounded-2xl"><i data-lucide="chevron-left"
+                        class="w-5 h-5"></i></button>
+                <h2 class="text-sm font-black uppercase italic tracking-tighter">Meu Histórico</h2>
+                <div class="w-10"></div>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-7 gap-2" id="calendar-grid"></div>
+            </div>
+        </div>
+
         <div id="tab-desafios" class="tab-content p-6 scroll-hide">
-            <h2 class="text-3xl font-black italic mb-8 mt-6 uppercase italic">Missões</h2>
+            <h2 class="text-3xl font-black italic mb-8 mt-6 uppercase tracking-tighter">Missões</h2>
             <div class="space-y-4" id="all-challenges-list"></div>
         </div>
 
         <div id="tab-progresso" class="tab-content p-6 scroll-hide">
-            <h2 class="text-3xl font-black italic mb-8 mt-6 uppercase tracking-tighter">Status Pro</h2>
+            <h2 class="text-3xl font-black italic mb-8 mt-6 uppercase tracking-tighter">Meu Status</h2>
             <div class="glass p-6 rounded-3xl mb-6 h-[200px]"><canvas id="progressChart"></canvas></div>
-            <div class="grid grid-cols-2 gap-4 mb-6">
-                <div class="glass p-5 rounded-3xl">
-                    <p class="text-[7px] font-black text-slate-500 uppercase">Cadência</p>
-                    <p class="text-xl font-black text-white italic">174 <span
-                            class="text-[9px] text-emerald-500">SPM</span></p>
-                </div>
-                <div class="glass p-5 rounded-3xl">
-                    <p class="text-[7px] font-black text-slate-500 uppercase">VO2 Max</p>
-                    <p class="text-xl font-black text-white italic">52 <span class="text-[9px] text-red-500">EST.</span>
-                    </p>
-                </div>
-            </div>
         </div>
 
-        <!-- MODAL INFORMAÇÕES DESAFIO -->
+        <!-- MODAL DESAFIO -->
         <div id="modal-challenge" class="challenge-info-modal shadow-2xl">
             <div class="w-12 h-1 bg-white/10 rounded-full mx-auto mb-6"></div>
             <h3 id="modal-challenge-title" class="text-2xl font-black italic uppercase italic text-emerald-500 mb-2">
             </h3>
             <p id="modal-challenge-desc" class="text-sm text-slate-300 italic mb-8"></p>
             <div class="flex flex-col gap-3">
-                <button onclick="finishChallengeFromModal()"
+                <button onclick="completeChallengeFromModal()"
                     class="w-full py-4 bg-emerald-500 text-black font-black rounded-2xl uppercase italic tracking-tighter">Finalizar
                     Agora</button>
-                <button onclick="hideChallengeModal()"
-                    class="w-full py-4 bg-white/5 border border-white/10 text-white font-black rounded-2xl uppercase italic text-[10px]">Fechar</button>
+                <button onclick="closeChallengeModal()"
+                    class="w-full py-4 bg-white/5 border border-white/10 text-white font-black rounded-2xl uppercase italic text-[10px]">Voltar</button>
             </div>
         </div>
 
@@ -404,15 +430,8 @@
             </div>
         </nav>
 
-        <!-- SHARE OVERLAY -->
         <div id="screen-share"
-            class="absolute inset-0 z-[200] hidden flex flex-col p-6 bg-[#020617] overflow-y-auto scroll-hide">
-            <div class="mb-6 p-6 glass rounded-[32px] border border-emerald-500/20 shadow-2xl">
-                <h3 class="text-sm font-black italic text-emerald-500 uppercase mb-1" id="share-report-title">RELATÓRIO
-                    IA</h3>
-                <p class="text-xs text-white leading-snug font-bold italic mb-4" id="share-report-desc">Analisando seu
-                    desempenho...</p>
-            </div>
+            class="absolute inset-0 z-[300] hidden flex flex-col p-6 bg-[#020617] overflow-y-auto scroll-hide">
             <div id="insta-card"
                 class="aspect-[9/12] rounded-[45px] relative overflow-hidden flex flex-col p-8 mb-6 insta-gradient border border-white/5 shadow-2xl">
                 <div class="absolute inset-x-0 top-0 h-[50%] z-0" id="map-share"></div>
@@ -439,7 +458,7 @@
                 </div>
             </div>
             <button onclick="location.reload()"
-                class="w-full py-5 bg-white text-black font-black rounded-3xl mb-8 uppercase italic tracking-tighter">Concluir
+                class="w-full py-5 bg-white text-black font-black rounded-3xl mb-8 uppercase italic tracking-tighter">Finalizar
                 Sessão</button>
         </div>
 
@@ -447,29 +466,35 @@
 
     <script>
         lucide.createIcons();
-        let maps = {}, mapThemes = {};
-        let pathLine, activePathLine, userMarker, timerInterval, dist = 0, time = 0, pathCoords = [], currentPos = [-23.45, -46.53];
-        let drawingPoints = [], isDrawing = false, routePreview;
+        let maps = {}, mapThemes = {}, routingControls = {};
+        let activePathLine, userMarker, timerInterval, dist = 0, time = 0, pathCoords = [], currentPos = [-23.45, -46.53];
+        let drawingPoints = [], isDrawing = false;
         let activeChallenges = [], selectedChallengeId = null;
 
-        const allChallenges = [
-            { id: '5k', name: 'Meta: 5K', desc: 'Corra seus primeiros 5km sem pausa.', pts: 200 },
-            { id: '15k', name: 'Resiliência', desc: 'Soma total de 15km nesta semana.', pts: 500 }
+        const weeklyPlanList = [
+            { day: 'Segunda', title: 'Intervalado Velocidade', km: '5', active: true },
+            { day: 'Terça', title: 'Rodagem Leve', km: '6', active: false },
+            { day: 'Quarta', title: 'Treino de Base', km: '8', active: false },
+            { day: 'Quinta', title: 'Recuperação Ativa', km: '4', active: false },
+            { day: 'Sexta', title: 'Tempo Run', km: '5', active: false },
+            { day: 'Sábado', title: 'Longão de Guarulhos', km: '12', active: false },
+            { day: 'Domingo', title: 'Descanso Total', km: '0', active: false }
         ];
 
         function init() {
-            setupGeolocation();
+            setupGPS();
+            renderWeeklyPlan();
             renderChallenges();
-            updateActiveChallengesUI();
+            renderCalendar();
         }
 
-        function setupGeolocation() {
+        function setupGPS() {
             if ("geolocation" in navigator) {
                 navigator.geolocation.watchPosition(pos => {
                     const newPos = [pos.coords.latitude, pos.coords.longitude];
                     currentPos = newPos;
-                    updateUserMarker(newPos);
-                });
+                    updateUserMarkers(newPos);
+                }, err => console.log("GPS pendente..."), { enableHighAccuracy: true });
             }
         }
 
@@ -477,13 +502,13 @@
             if (maps[id]) return maps[id];
             const m = L.map(container, { zoomControl: false, attributionControl: false }).setView(currentPos, 16);
             mapThemes[id] = 'dark';
-            applyTheme(m, 'dark');
+            applyMapTheme(m, 'dark');
             maps[id] = m;
             return m;
         }
 
-        function applyTheme(m, theme) {
-            m.eachLayer(l => m.removeLayer(l));
+        function applyMapTheme(m, theme) {
+            m.eachLayer(l => { if (l instanceof L.TileLayer) m.removeLayer(l); });
             const url = theme === 'dark'
                 ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
                 : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
@@ -492,18 +517,15 @@
 
         function toggleMapTheme(id) {
             mapThemes[id] = mapThemes[id] === 'dark' ? 'light' : 'dark';
-            applyTheme(maps[id], mapThemes[id]);
-            if (id === 'map' && userMarker) userMarker.addTo(maps[id]);
+            applyMapTheme(maps[id], mapThemes[id]);
         }
 
-        function updateUserMarker(pos) {
+        function updateUserMarkers(pos) {
             Object.values(maps).forEach(m => {
-                if (!m.currentMarker) {
+                if (!m.uMarker) {
                     const icon = L.divIcon({ className: 'user-marker', iconSize: [14, 14] });
-                    m.currentMarker = L.marker(pos, { icon }).addTo(m);
-                } else {
-                    m.currentMarker.setLatLng(pos);
-                }
+                    m.uMarker = L.marker(pos, { icon }).addTo(m);
+                } else { m.uMarker.setLatLng(pos); }
             });
         }
 
@@ -517,13 +539,8 @@
             const ids = ['inicio', 'mapa', 'correr', 'desafios', 'progresso'];
             document.querySelectorAll('.nav-bar .nav-item')[ids.indexOf(tabId)].classList.add('active-tab');
 
-            if (tabId === 'mapa') {
-                const m = initMap('map-route', 'map-route');
-                m.on('click', onMapClick);
-            }
-            if (tabId === 'correr') {
-                initMap('map', 'map');
-            }
+            if (tabId === 'mapa') initMap('map-route', 'map-route').on('click', onMapClick);
+            if (tabId === 'correr') initMap('map', 'map');
             if (tabId === 'progresso') initChart();
             lucide.createIcons();
         }
@@ -534,50 +551,54 @@
             lucide.createIcons();
         }
 
-        // MAPA LÓGICA
-        function suggestLiveRoute() {
+        // MAPA COM ROTEAMENTO (RUAS)
+        function suggestStreetRoute() {
             const m = maps['map-route'];
-            const p = currentPos;
-            const pts = [[p[0], p[1]], [p[0] + 0.004, p[1] + 0.003], [p[0] + 0.002, p[1] - 0.005], [p[0], p[1]]];
-            if (routePreview) m.removeLayer(routePreview);
-            routePreview = L.polyline(pts, { color: '#22C55E', weight: 6 }).addTo(m);
-            m.fitBounds(routePreview.getBounds());
+            const start = currentPos;
+            const end = [start[0] + 0.008, start[1] + 0.005];
+
+            if (routingControls['map-route']) m.removeControl(routingControls['map-route']);
+
+            routingControls['map-route'] = L.Routing.control({
+                waypoints: [L.latLng(start), L.latLng(end)],
+                routeWhileDragging: false,
+                addWaypoints: false,
+                createMarker: () => null,
+                lineOptions: { styles: [{ color: '#22C55E', weight: 8, opacity: 0.9 }] }
+            }).addTo(m);
+
             document.getElementById('route-menu').classList.add('hidden');
             document.getElementById('route-confirm').classList.remove('hidden');
         }
 
-        function startDrawingRoute() {
+        function startDrawingStreetRoute() {
             isDrawing = true;
             drawingPoints = [];
-            alert("Modo desenho ativo: Toque no mapa para definir sua rota.");
+            alert("Toque no mapa para marcar o DESTINO. A rota seguirá as ruas!");
         }
 
         function onMapClick(e) {
             if (!isDrawing) return;
-            drawingPoints.push([e.latlng.lat, e.latlng.lng]);
             const m = maps['map-route'];
-            if (routePreview) m.removeLayer(routePreview);
-            routePreview = L.polyline(drawingPoints, { color: '#22C55E', weight: 6, dashArray: '8, 8' }).addTo(m);
-            L.circleMarker(e.latlng, { radius: 6, color: '#22C55E', fillOpacity: 0.8 }).addTo(m);
+            const start = currentPos;
+            const end = [e.latlng.lat, e.latlng.lng];
 
-            if (drawingPoints.length >= 2) {
-                document.getElementById('route-menu').classList.add('hidden');
-                document.getElementById('route-confirm').classList.remove('hidden');
-            }
+            if (routingControls['map-route']) m.removeControl(routingControls['map-route']);
+
+            routingControls['map-route'] = L.Routing.control({
+                waypoints: [L.latLng(start), L.latLng(end)],
+                createMarker: () => null,
+                lineOptions: { styles: [{ color: '#22C55E', weight: 8, opacity: 0.9 }] }
+            }).addTo(m);
+
+            isDrawing = false;
+            document.getElementById('route-menu').classList.add('hidden');
+            document.getElementById('route-confirm').classList.remove('hidden');
         }
 
-        function confirmRouteAndStart() {
-            switchTab('correr');
-            const m = maps['map'];
-            if (routePreview) {
-                L.polyline(routePreview.getLatLngs(), { color: 'rgba(34, 197, 94, 0.3)', weight: 8, dashArray: '10, 10' }).addTo(m);
-            }
-        }
-
-        function clearMap(id) {
-            const m = maps[id];
-            if (routePreview) m.removeLayer(routePreview);
-            drawingPoints = []; isDrawing = false;
+        function resetMapRoute() {
+            const m = maps['map-route'];
+            if (routingControls['map-route']) m.removeControl(routingControls['map-route']);
             document.getElementById('route-menu').classList.remove('hidden');
             document.getElementById('route-confirm').classList.add('hidden');
         }
@@ -588,18 +609,20 @@
             document.getElementById('bottom-nav').style.transform = 'translateY(100px)';
             document.getElementById('running-ui').classList.remove('hidden');
             const m = maps['map'];
-            activePathLine = L.polyline([], { color: '#22C55E', weight: 8, opacity: 0.9 }).addTo(m);
-            pathCoords = [[currentPos[0], currentPos[1]]];
+            activePathLine = L.polyline([], { color: '#22C55E', weight: 8 }).addTo(m);
+            pathCoords = [currentPos];
 
             timerInterval = setInterval(() => {
-                time++; dist += 0.003;
-                // Simula movimento GPS seguindo a rota ou aleatório
-                currentPos[0] += (Math.random() - 0.5) * 0.0001;
-                currentPos[1] += (Math.random() - 0.5) * 0.0001;
-                pathCoords.push([...currentPos]);
-                activePathLine.setLatLngs(pathCoords);
-                updateUserMarker(currentPos);
-                m.panTo(currentPos);
+                time++; dist += 0.004;
+                // Movimento simulado por ruas (baseado em GPS real se disponível)
+                navigator.geolocation.getCurrentPosition(pos => {
+                    const p = [pos.coords.latitude, pos.coords.longitude];
+                    currentPos = p;
+                    pathCoords.push(p);
+                    activePathLine.setLatLngs(pathCoords);
+                    m.panTo(p);
+                    updateUserMarkers(p);
+                });
                 updateMetrics();
             }, 1000);
         }
@@ -620,78 +643,91 @@
             document.getElementById('f-dist').innerText = dist.toFixed(2);
             document.getElementById('f-time').innerText = document.getElementById('time-display').innerText;
             document.getElementById('f-pace').innerText = document.getElementById('pace-display').innerText;
-
-            setTimeout(() => {
-                const mS = initMap('map-share', 'map-share');
-                L.polyline(pathCoords, { color: '#22C55E', weight: 12 }).addTo(mS);
-                mS.fitBounds(L.polyline(pathCoords).getBounds());
-            }, 300);
         }
 
-        // DESAFIOS E MODAL
-        function renderChallenges() {
-            const list = document.getElementById('all-challenges-list');
+        // UI RENDERING
+        function renderWeeklyPlan() {
+            const list = document.getElementById('weekly-plan-list');
             list.innerHTML = '';
-            allChallenges.forEach(c => {
-                const acc = activeChallenges.find(a => a.id === c.id);
+            weeklyPlanList.forEach(p => {
                 list.innerHTML += `
-                <div class="glass p-6 rounded-[32px] border-l-4 border-emerald-500">
-                    <h3 class="text-xl font-black italic uppercase">${c.name}</h3>
-                    <p class="text-xs text-slate-400 mb-6 font-medium">${c.desc}</p>
-                    <div class="flex justify-between items-center">
-                        <span class="text-xs font-black text-emerald-500">+${c.pts} PTS</span>
-                        ${acc ? '<span class="text-[9px] font-bold text-slate-500 uppercase">Ativo</span>' :
-                        `<button onclick="acceptChallenge('${c.id}')" class="bg-emerald-500 text-black px-6 py-2 rounded-full font-black text-[10px] uppercase">Aceitar</button>`}
+                <div class="p-5 glass rounded-2xl border-l-4 ${p.km === '0' ? 'border-slate-800 opacity-50' : 'border-emerald-500'}">
+                    <p class="text-[8px] font-bold text-slate-500 uppercase mb-1">${p.day}</p>
+                    <div class="flex justify-between items-center text-left">
+                        <h4 class="font-black italic text-lg uppercase">${p.title}</h4>
+                        <span class="text-sm font-black text-emerald-500">${p.km > 0 ? p.km + 'km' : 'DESC.'}</span>
                     </div>
                 </div>
             `;
             });
         }
 
-        function acceptChallenge(id) {
-            const c = allChallenges.find(a => a.id === id);
-            activeChallenges.push({ ...c, progress: 12 });
-            updateActiveChallengesUI();
+        const mChallenges = [
+            { id: '5k', name: 'Meta: 5K', desc: 'Siga a rota e complete 5km.', pts: 200 },
+            { id: '15k', name: 'Elite Guarulhos', desc: '15km acumulados na semana.', pts: 500 }
+        ];
+
+        function renderChallenges() {
+            const l = document.getElementById('all-challenges-list');
+            l.innerHTML = '';
+            mChallenges.forEach(c => {
+                const acc = activeChallenges.find(a => a.id === c.id);
+                l.innerHTML += `
+                 <div class="glass p-6 rounded-[32px] border-l-4 border-emerald-500 text-left">
+                    <h3 class="text-xl font-black italic uppercase">${c.name}</h3>
+                    <p class="text-xs text-slate-400 mb-6 font-medium">${c.desc}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-black text-emerald-500">+${c.pts} PTS</span>
+                        ${acc ? '<span class="text-[9px] font-bold text-slate-500 uppercase">Ativado</span>' :
+                        `<button onclick="acceptC('${c.id}')" class="bg-emerald-500 text-black px-6 py-2 rounded-full font-black text-[10px] uppercase">Aceitar</button>`}
+                    </div>
+                </div>
+            `;
+            });
+        }
+
+        function acceptC(id) {
+            const c = mChallenges.find(a => a.id === id);
+            activeChallenges.push({ ...c, progress: 15 });
+            updateHomeC();
             renderChallenges();
             switchTab('inicio');
         }
 
-        function updateActiveChallengesUI() {
+        function updateHomeC() {
             const cont = document.getElementById('active-challenges-container');
             cont.innerHTML = '';
             activeChallenges.forEach(ac => {
                 cont.innerHTML += `
-                <div onclick="showChallengeModal('${ac.id}')" class="p-5 glass rounded-3xl border-l-4 border-yellow-500 relative cursor-pointer">
-                    <div class="flex justify-between items-center mb-2 pointer-events-none">
-                        <span class="text-[7px] font-black text-yellow-500 uppercase italic">Andamento</span>
-                        <span class="text-[10px] font-bold text-yellow-500">${ac.progress}%</span>
+                <div onclick="openChallenge('${ac.id}')" class="p-5 glass rounded-3xl border-l-4 border-yellow-500 relative cursor-pointer text-left">
+                    <div class="flex justify-between items-center mb-2">
+                         <span class="text-[7px] font-black text-yellow-500 uppercase italic">Em Foco</span>
+                         <span class="text-[10px] font-bold text-yellow-500">${ac.progress}%</span>
                     </div>
-                    <h4 class="font-black italic text-xs mb-2 uppercase pointer-events-none">${ac.name}</h4>
-                    <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden pointer-events-none"><div class="bg-yellow-500 h-full" style="width: ${ac.progress}%"></div></div>
+                    <h4 class="font-black italic text-xs mb-2 uppercase">${ac.name}</h4>
+                    <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden"><div class="bg-yellow-500 h-full" style="width: ${ac.progress}%"></div></div>
                 </div>
             `;
             });
             lucide.createIcons();
         }
 
-        function showChallengeModal(id) {
-            const c = activeChallenges.find(a => a.id === id);
+        function openChallenge(id) {
             selectedChallengeId = id;
+            const c = activeChallenges.find(a => a.id === id);
             document.getElementById('modal-challenge-title').innerText = c.name;
             document.getElementById('modal-challenge-desc').innerText = c.desc;
             document.getElementById('modal-challenge').classList.add('active');
         }
 
-        function hideChallengeModal() {
-            document.getElementById('modal-challenge').classList.remove('active');
-        }
+        function closeChallengeModal() { document.getElementById('modal-challenge').classList.remove('active'); }
 
-        function finishChallengeFromModal() {
+        function completeChallengeFromModal() {
             activeChallenges = activeChallenges.filter(a => a.id !== selectedChallengeId);
-            hideChallengeModal();
-            updateActiveChallengesUI();
+            closeChallengeModal();
+            updateHomeC();
             renderChallenges();
-            alert("Desafio finalizado e pontos creditados!");
+            alert("Pontos creditados com sucesso!");
         }
 
         function sendMessage() {
@@ -702,22 +738,26 @@
             chat.innerHTML += `<div class="flex justify-end"><div class="bg-white/10 p-4 rounded-3xl rounded-tr-none text-xs font-bold italic text-slate-300 max-w-[80%] uppercase">${msg}</div></div>`;
             input.value = '';
             setTimeout(() => {
-                chat.innerHTML += `<div class="flex gap-3"><div class="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 text-[10px] font-black">IA</div><div class="glass p-4 rounded-3xl rounded-tl-none text-xs font-bold italic text-emerald-500 max-w-[80%] uppercase text-left">Analisando sua pergunta, Marcio... Como seu treinador RB, sugiro focar no pace de 5'30" hoje.</div></div>`;
+                chat.innerHTML += `<div class="flex gap-3"><div class="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 text-[10px] font-black">IA</div><div class="glass p-4 rounded-3xl rounded-tl-none text-xs font-bold italic text-emerald-500 max-w-[80%] uppercase text-left leading-relaxed">Analisei seu cansaço e seu ritmo de hoje, Marcio. O RitmoCoach IA recomenda que você foque em manter o pace abaixo de 5'40" no percurso de amanhã.</div></div>`;
                 chat.scrollTop = chat.scrollHeight;
-            }, 800);
+            }, 1000);
+        }
+
+        function renderCalendar() {
+            const g = document.getElementById('calendar-grid');
+            for (let i = 1; i <= 31; i++) {
+                g.innerHTML += `<div class="aspect-square flex items-center justify-center text-[10px] rounded-xl ${i < 5 ? 'bg-emerald-500 text-black font-black italic' : 'bg-slate-900 text-slate-500'}">${i}</div>`;
+            }
         }
 
         function initChart() {
             const ctx = document.getElementById('progressChart').getContext('2d');
             if (chart) chart.destroy();
-            chart = new Chart(ctx, {
-                type: 'bar',
-                data: { labels: ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'], datasets: [{ data: [5, 2, 6, 0, 10, 4, 12], backgroundColor: '#22C55E' }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-            });
+            chart = new Chart(ctx, { type: 'bar', data: { labels: ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'], datasets: [{ data: [5, 2, 6, 0, 10, 4, 12], backgroundColor: '#22C55E' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
         }
 
         init();
+        let chart;
     </script>
 </body>
 
