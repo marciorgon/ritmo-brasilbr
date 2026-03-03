@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ritmo Brasil (RB) - Versão Final Pro v1.2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Leaflet para Mapas Reais -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #020617;
+            color: white;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .mobile-container {
+            width: 375px;
+            height: 812px;
+            position: relative;
+            background: #020617;
+            border-radius: 44px;
+            border: 8px solid #1e293b;
+            overflow: hidden;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .text-emerald {
+            color: #22C55E;
+        }
+
+        .bg-emerald {
+            background-color: #22C55E;
+        }
+
+        .animate-glow {
+            animation: pulse-glow 2s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0% {
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 15px rgba(34, 197, 94, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+            }
+        }
+
+        /* Filtro Dark para o Mapa */
+        .dark-map {
+            filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+        }
+
+        #map,
+        #map-share {
+            height: 100%;
+            width: 100%;
+        }
+
+        .scroll-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        .active-screen {
+            display: flex !important;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="mobile-container overflow-hidden flex flex-col">
+
+        <!-- DASHBOARD -->
+        <div id="screen-dashboard" class="h-full flex flex-col overflow-y-auto scroll-hide pb-20 active-screen">
+            <div class="p-6 flex justify-between items-center">
+                <div class="w-12 h-12 flex items-center justify-center shrink-0">
+                    <img src="logo.png" alt="RB" class="w-full h-full object-contain"
+                        onerror="this.src='https://api.dicebear.com/7.x/initials/svg?seed=RB&backgroundColor=22c55e'">
+                </div>
+                <div class="text-right">
+                    <p class="text-[10px] text-slate-500 uppercase tracking-widest">RitmoCoach IA</p>
+                    <p class="font-bold text-lg text-emerald">Marcio 🏃</p>
+                </div>
+            </div>
+
+            <div class="px-6 mb-4">
+                <div class="glass rounded-3xl p-5 border-l-4 border-emerald">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase">Meta da Semana</span>
+                        <span class="text-sm font-black text-emerald">18.5 / 25 km</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div class="bg-emerald h-full rounded-full" style="width: 74%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-6 mb-6">
+                <div class="bg-slate-900/50 rounded-3xl p-6 border border-white/5 relative overflow-hidden">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i data-lucide="calendar" class="w-4 h-4 text-emerald"></i>
+                        <span class="text-[10px] font-bold text-slate-300 uppercase">Hoje</span>
+                    </div>
+                    <h3 class="text-2xl font-black text-[#FFCC00] mb-1">Intervalado de Velocidade</h3>
+                    <p class="text-xs text-slate-400 mb-6">5km • 30 min • Pace alvo 5:30</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="showScreen('screen-week')"
+                            class="py-3 glass rounded-xl text-[10px] font-bold uppercase text-slate-300">Plano
+                            Semanal</button>
+                        <button onclick="showScreen('screen-calendar')"
+                            class="py-3 glass rounded-xl text-[10px] font-bold uppercase text-slate-300">Histórico</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-6 mb-8">
+                <button onclick="startRun()"
+                    class="w-full py-5 bg-emerald text-slate-950 font-black rounded-2xl flex items-center justify-center gap-3 animate-glow text-lg uppercase tracking-tight">
+                    <i data-lucide="play" class="w-6 h-6 fill-current"></i> Iniciar Treino
+                </button>
+            </div>
+
+            <div class="px-6">
+                <h3 class="text-[10px] font-bold text-slate-500 uppercase mb-4">Suas Medalhas</h3>
+                <div class="flex gap-4 overflow-x-auto scroll-hide">
+                    <div class="min-w-[120px] glass rounded-2xl p-4 text-center border-b-2 border-emerald">
+                        <p class="text-3xl mb-1">🥇</p>
+                        <p class="text-[8px] font-black uppercase">Primeiro 5km</p>
+                    </div>
+                    <div class="min-w-[120px] glass rounded-2xl p-4 text-center border-b-2 border-orange-500">
+                        <p class="text-3xl mb-1">🔥</p>
+                        <p class="text-[8px] font-black uppercase">Streak 7 Dias</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODO GPS CORRIDA -->
+        <div id="screen-gps" class="h-full hidden flex flex-col relative">
+            <div id="map" class="absolute inset-0 z-0 dark-map"></div>
+            <div
+                class="relative z-10 flex flex-col h-full bg-gradient-to-t from-[#020617] via-transparent to-transparent">
+                <div class="p-6 pt-12">
+                    <button onclick="stopRun()" class="p-4 glass rounded-2xl"><i data-lucide="x"
+                            class="w-6 h-6"></i></button>
+                </div>
+                <div class="mt-auto p-10 text-center">
+                    <p class="text-7xl font-black mb-2 tracking-tighter italic" id="pace-display">0'00"</p>
+                    <div class="flex justify-center gap-12 mt-12 mb-10">
+                        <div class="text-center">
+                            <p class="text-4xl font-black" id="dist-display">0.00</p>
+                            <p class="text-[8px] text-slate-500 uppercase font-bold">Km</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-4xl font-black" id="time-display">00:00</p>
+                            <p class="text-[8px] text-slate-500 uppercase font-bold">Tempo</p>
+                        </div>
+                    </div>
+                    <button onclick="finishRun()"
+                        class="w-full py-6 bg-red-600 font-black rounded-full uppercase tracking-[0.2em] shadow-2xl">Finalizar
+                        Treino</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SHARE INSTAGRAMÁVEL COM MAPA -->
+        <div id="screen-share" class="h-full hidden flex flex-col p-6 bg-black">
+            <div id="insta-card"
+                class="flex-1 rounded-[40px] relative overflow-hidden flex flex-col p-8 border border-white/10"
+                style="background: linear-gradient(135deg, #020617 0%, #064c31 100%);">
+
+                <!-- Mapa Estático da Rota -->
+                <div class="absolute inset-x-0 top-0 h-[45%] z-0 dark-map opacity-50" id="map-share"></div>
+                <div class="absolute inset-0 z-1 bg-gradient-to-b from-transparent via-[#020617]/50 to-[#020617]"></div>
+
+                <div class="flex justify-between items-start relative z-10 mb-6">
+                    <div class="flex items-center gap-2">
+                        <img src="logo.png" class="w-8 h-8 object-contain"
+                            onerror="this.src='https://api.dicebear.com/7.x/initials/svg?seed=RB&backgroundColor=22c55e'">
+                        <span class="font-black italic text-sm tracking-tighter">RITMO BRASIL</span>
+                    </div>
+                    <div
+                        class="bg-emerald text-black px-3 py-1 rounded font-black skew-x-[-12deg] text-[10px] uppercase">
+                        IA COACH</div>
+                </div>
+
+                <div class="flex-1 flex flex-col justify-end items-center text-center relative z-10 pb-4">
+                    <div
+                        class="w-20 h-20 bg-emerald/10 rounded-full flex items-center justify-center mb-4 border border-emerald/50">
+                        <i data-lucide="award" class="w-10 h-10 text-emerald"></i>
+                    </div>
+                    <h2 class="text-5xl font-black italic tracking-tighter text-white leading-none mb-2">EXCELENTE</h2>
+                    <div class="grid grid-cols-3 gap-6 w-full mt-6 bg-white/5 py-4 rounded-3xl backdrop-blur-md">
+                        <div>
+                            <p class="text-xl font-black" id="final-dist">0.00</p>
+                            <p class="text-[7px] uppercase text-slate-400">km</p>
+                        </div>
+                        <div>
+                            <p class="text-xl font-black" id="final-time">00:00</p>
+                            <p class="text-[7px] uppercase text-slate-400">Tempo</p>
+                        </div>
+                        <div>
+                            <p class="text-xl font-black text-emerald" id="final-pace">0'00"</p>
+                            <p class="text-[7px] uppercase text-slate-400">Pace</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-auto relative z-10 pt-4 border-t border-white/5 flex justify-between items-center">
+                    <div class="text-left">
+                        <p class="text-[7px] text-slate-500 font-bold uppercase italic">RitmoCoach IA Feedback</p>
+                        <p class="text-[10px] font-bold text-white">"Sua consistência em Guarulhos está incrível!"</p>
+                    </div>
+                    <i data-lucide="instagram" class="w-4 h-4 opacity-20"></i>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mt-6">
+                <button onclick="location.reload()"
+                    class="py-4 glass rounded-2xl font-bold uppercase text-[10px]">Início</button>
+                <button class="py-4 bg-emerald text-black rounded-2xl font-black uppercase text-[10px]">Baixar
+                    Story</button>
+            </div>
+        </div>
+
+        <!-- SCREENS SEMANA/CALENDÁRIO (SIMPLIFICADAS) -->
+        <div id="screen-week" class="h-full hidden flex-col bg-[#020617] p-6">
+            <button onclick="showScreen('screen-dashboard')"
+                class="w-10 h-10 glass rounded-lg mb-6 flex items-center justify-center"><i
+                    data-lucide="chevron-left"></i></button>
+            <h2 class="text-2xl font-black italic mb-6">PLANO SEMANAL</h2>
+            <div class="space-y-4">
+                <div class="glass p-5 rounded-2xl border-l-4 border-emerald">
+                    <p class="font-bold">Segunda: Intervalado</p>
+                    <p class="text-xs text-slate-400">5km @ 5:30</p>
+                </div>
+                <div class="glass p-5 rounded-2xl border-l-4 border-slate-700 opacity-50">
+                    <p class="font-bold">Terça: Descanso</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-calendar" class="h-full hidden flex-col bg-[#020617] p-6">
+            <button onclick="showScreen('screen-dashboard')"
+                class="w-10 h-10 glass rounded-lg mb-6 flex items-center justify-center"><i
+                    data-lucide="chevron-left"></i></button>
+            <h2 class="text-2xl font-black italic mb-6">HISTÓRICO</h2>
+            <div class="grid grid-cols-7 gap-2 mb-8" id="mini-cal"></div>
+        </div>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+        let map, mapShare, pathLine, pathShare, currentPos = [-23.45, -46.53];
+        let dist = 0, time = 0, timerInterval, pathCoords = [];
+
+        function showScreen(id) {
+            document.querySelectorAll('.active-screen, div[id^="screen-"]').forEach(s => { s.classList.add('hidden'); s.classList.remove('active-screen'); });
+            document.getElementById(id).classList.remove('hidden');
+            document.getElementById(id).classList.add('active-screen');
+            lucide.createIcons();
+        }
+
+        function startRun() {
+            showScreen('screen-gps');
+            if (!map) {
+                map = L.map('map', { zoomControl: false, attributionControl: false }).setView(currentPos, 16);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                pathLine = L.polyline([], { color: '#22C55E', weight: 8 }).addTo(map);
+            }
+            timerInterval = setInterval(() => {
+                time++; dist += 0.005;
+                currentPos[0] += (Math.random() - 0.5) * 0.0001;
+                currentPos[1] += (Math.random() - 0.5) * 0.0001;
+                pathCoords.push([...currentPos]);
+                pathLine.setLatLngs(pathCoords);
+                map.panTo(currentPos);
+                updateMetrics();
+            }, 1000);
+        }
+
+        function updateMetrics() {
+            document.getElementById('time-display').innerText = new Date(time * 1000).toISOString().substr(14, 5);
+            document.getElementById('dist-display').innerText = dist.toFixed(2);
+            let pace = (time / 60) / dist;
+            if (dist > 0) {
+                let m = Math.floor(pace), s = Math.round((pace % 1) * 60);
+                document.getElementById('pace-display').innerText = `${m}'${s.toString().padStart(2, '0')}"`;
+            }
+        }
+
+        function finishRun() {
+            clearInterval(timerInterval);
+            showScreen('screen-share');
+
+            // Renderizar Mapa no Card de Compartilhamento
+            setTimeout(() => {
+                if (!mapShare) {
+                    mapShare = L.map('map-share', { zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false }).setView(currentPos, 15);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapShare);
+                    pathShare = L.polyline(pathCoords, { color: '#22C55E', weight: 10 }).addTo(mapShare);
+                } else {
+                    pathShare.setLatLngs(pathCoords);
+                    mapShare.fitBounds(pathShare.getBounds());
+                }
+
+                // Atualizar métricas finais no card
+                document.getElementById('final-dist').innerText = dist.toFixed(2);
+                document.getElementById('final-time').innerText = new Date(time * 1000).toISOString().substr(14, 5);
+                document.getElementById('final-pace').innerText = document.getElementById('pace-display').innerText;
+            }, 300);
+        }
+
+        function stopRun() { if (confirm("Cancelar?")) location.reload(); }
+
+        // Mini calendario gen
+        const cal = document.getElementById('mini-cal');
+        for (let i = 1; i <= 31; i++) {
+            const d = document.createElement('div');
+            d.className = `aspect-square flex items-center justify-center text-[10px] rounded-md ${i < 5 ? 'bg-emerald/20 text-emerald border border-emerald/30' : 'bg-slate-800 text-slate-500'}`;
+            d.innerText = i;
+            cal.appendChild(d);
+        }
+    </script>
+</body>
+
+</html>
