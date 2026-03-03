@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ritmo Brasil (RB) - Pro v2.2 Final</title>
+    <title>Ritmo Brasil (RB) - Pro v2.3 Final</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -154,18 +154,8 @@
             cursor: pointer;
         }
 
-        /* Insta Card Styling */
         .insta-gradient {
             background: linear-gradient(135deg, #020617 0%, #064c31 100%);
-        }
-
-        .br-badge {
-            background: #FFCC00;
-            color: #000;
-            font-weight: 900;
-            padding: 2px 8px;
-            border-radius: 4px;
-            transform: skewX(-10deg);
         }
     </style>
 </head>
@@ -184,49 +174,82 @@
                     <p class="font-bold text-lg text-emerald-500 italic">Atleta Marcio 🏃</p>
                 </div>
             </div>
-            <div class="p-6">
-                <!-- Desafio em Andamento (Aparece se aceito) -->
-                <div id="home-challenge" class="hidden mb-6 p-4 glass rounded-3xl border-l-4 border-yellow-500">
+
+            <div class="p-6 space-y-6">
+                <!-- Desafio em Andamento -->
+                <div id="home-challenge-box"
+                    class="hidden p-4 glass rounded-3xl border-l-4 border-yellow-500 bg-yellow-500/5">
                     <div class="flex justify-between items-center mb-2">
                         <span class="text-[9px] font-black text-yellow-500 uppercase">Desafio Ativo</span>
-                        <span class="text-[10px] font-bold" id="home-challenge-progress">0%</span>
+                        <span class="text-[10px] font-bold" id="home-challenge-perc text-yellow-500">12%</span>
                     </div>
-                    <h4 class="font-black italic text-sm mb-2" id="home-challenge-name">NOME DO DESAFIO</h4>
-                    <div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden">
-                        <div class="bg-yellow-500 h-full rounded-full" id="home-challenge-bar" style="width: 0%"></div>
+                    <h4 class="font-black italic text-sm mb-2" id="home-challenge-display-name">Exterminador de 5k</h4>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div class="bg-yellow-500 h-full rounded-full" id="home-challenge-progress-bar"
+                            style="width: 12%"></div>
                     </div>
                 </div>
 
-                <div class="glass rounded-3xl p-6 border-l-4 border-emerald-500 mb-6">
+                <!-- Resumo Pontos -->
+                <div class="glass rounded-3xl p-6 border-l-4 border-emerald-500">
                     <div class="flex justify-between items-center mb-4">
-                        <span class="text-[10px] font-black text-slate-400 uppercase">Pontos Acumulados</span>
-                        <span class="text-xl font-black text-emerald-500">2,850 pts</span>
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ritmo Score</span>
+                        <span class="text-xl font-black text-emerald-500 tracking-tighter">2,850 pts</span>
                     </div>
                     <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
                         <div class="bg-emerald-500 h-full rounded-full" style="width: 65%"></div>
                     </div>
                 </div>
-                <div class="bg-slate-900/60 rounded-3xl p-6 border border-white/5 mb-6">
-                    <span class="text-[9px] font-black text-emerald-500 uppercase italic">Próximo Treino</span>
-                    <h3 class="text-2xl font-black italic tracking-tighter mb-1 mt-1 uppercase">Intervalado de
-                        Velocidade</h3>
-                    <p class="text-xs text-slate-400 mb-6 font-medium">Foco: Performance Guarulhos</p>
+
+                <!-- Plano Semanal (Hoje) -->
+                <div class="bg-slate-900/60 rounded-3xl p-6 border border-white/5 relative overflow-hidden">
+                    <div class="flex items-center gap-2 mb-2">
+                        <i data-lucide="zap" class="w-4 h-4 text-emerald-500"></i>
+                        <span class="text-[10px] font-black text-emerald-500 uppercase italic">Treino de Hoje</span>
+                    </div>
+                    <h3 class="text-2xl font-black italic tracking-tighter mb-4 uppercase">Intervalado 5KM</h3>
+                    <div class="grid grid-cols-2 gap-3 mb-6">
+                        <button onclick="showScreen('screen-week')"
+                            class="py-3 glass rounded-2xl text-[10px] font-bold uppercase text-slate-300">Meu
+                            Plano</button>
+                        <button onclick="showScreen('screen-calendar')"
+                            class="py-3 glass rounded-2xl text-[10px] font-bold uppercase text-slate-300">Calendário</button>
+                    </div>
                     <button onclick="switchTab('correr')"
-                        class="w-full py-4 bg-emerald-500 text-black font-black rounded-2xl uppercase italic tracking-tighter">Começar
-                        Agora</button>
+                        class="w-full py-4 bg-emerald-500 text-black font-black rounded-2xl uppercase italic tracking-tighter text-sm">Iniciar
+                        Corrida</button>
+                </div>
+
+                <!-- Medalhas Recentes -->
+                <div class="flex gap-4 overflow-x-auto scroll-hide pb-4">
+                    <div class="min-w-[130px] glass rounded-2xl p-4 text-center border-b border-emerald-500/50">
+                        <p class="text-2xl mb-1">🏅</p>
+                        <p class="text-[8px] font-black uppercase">Primeiro 5k</p>
+                    </div>
+                    <div class="min-w-[130px] glass rounded-2xl p-4 text-center border-b border-orange-500/50">
+                        <p class="text-2xl mb-1">🔥</p>
+                        <p class="text-[8px] font-black uppercase">Streak 7 Dias</p>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- TELA MAPA -->
+        <!-- TELA MAPA (Personalização) -->
         <div id="tab-mapa" class="tab-content h-full relative">
             <div id="map-route" class="absolute inset-0 z-0 dark-map"></div>
             <div class="relative z-10 p-6 flex flex-col h-full pointer-events-none">
-                <div class="glass p-5 rounded-3xl pointer-events-auto bg-slate-950/90 mt-12">
-                    <h3 class="text-sm font-black italic mb-4 uppercase text-emerald-500">Planejar Rota</h3>
-                    <button
-                        class="w-full bg-emerald-500 text-black py-3 rounded-2xl font-black text-xs uppercase tracking-tighter">Traçar
-                        novo percurso</button>
+                <div
+                    class="glass p-6 rounded-[32px] pointer-events-auto bg-slate-950/90 mt-12 border border-white/5 shadow-2xl">
+                    <h3 class="text-sm font-black italic mb-6 uppercase text-emerald-400 tracking-widest">Definir
+                        Percurso</h3>
+                    <div class="space-y-4">
+                        <button onclick="mockRouteSuggestion()"
+                            class="w-full bg-emerald-500 text-black py-4 rounded-2xl font-black text-xs uppercase tracking-tighter shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">Sugerir
+                            Rota Baseada em Mim</button>
+                        <button onclick="enableCustomRoute()"
+                            class="w-full bg-white/5 border border-white/10 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-tighter active:scale-95 transition-all">Desenhar
+                            Minha Rota</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -238,11 +261,11 @@
                 <div class="stats-float shadow-2xl">
                     <div class="text-center">
                         <p class="text-lg font-black italic text-white" id="pace-display">0'00"</p>
-                        <p class="text-[7px] uppercase font-bold text-slate-500 mt-1">Pace</p>
+                        <p class="text-[7px] uppercase font-bold text-slate-500 mt-1">Ritmo</p>
                     </div>
                     <div class="text-center">
                         <p class="text-lg font-black italic text-white" id="dist-display">0.00</p>
-                        <p class="text-[7px] uppercase font-bold text-slate-500 mt-1">Km</p>
+                        <p class="text-[7px] uppercase font-bold text-slate-500 mt-1">KM</p>
                     </div>
                     <div class="text-center">
                         <p class="text-lg font-black italic text-white" id="time-display">00:00</p>
@@ -253,7 +276,7 @@
                 </div>
             </div>
             <div class="absolute inset-0 flex items-center justify-center z-[60]" id="start-btn-container">
-                <button onclick="startRun()"
+                <button onclick="requestRealLocationAndStart()"
                     class="w-24 h-24 bg-emerald-500 text-black rounded-full font-black uppercase italic shadow-2xl shadow-emerald-500/50 flex flex-col items-center justify-center gap-1 active:scale-95 transition-all">
                     <i data-lucide="play" class="w-8 h-8 fill-current"></i><span class="text-[8px]">Iniciar</span>
                 </button>
@@ -262,69 +285,162 @@
 
         <!-- TELA DESAFIOS -->
         <div id="tab-desafios" class="tab-content p-6 scroll-hide">
-            <h2 class="text-3xl font-black italic mb-8 mt-6 uppercase">Desafios RB</h2>
+            <h2 class="text-3xl font-black italic mb-8 mt-6 uppercase">Desafios Pro</h2>
             <div class="space-y-4">
-                <div class="glass p-5 rounded-[32px] border-l-4 border-emerald-500">
-                    <p class="text-[8px] font-black text-emerald-500 uppercase mb-2">Iniciante</p>
-                    <h3 class="text-lg font-black italic mb-1 uppercase">Primeiros 5K</h3>
-                    <p class="text-xs text-slate-400 mb-4 font-medium">Complete seu primeiro treino de 5km.</p>
+                <div class="glass p-6 rounded-[32px] border-l-4 border-emerald-500 bg-emerald-500/5">
+                    <p class="text-[8px] font-black text-emerald-500 uppercase mb-2">Tarefa Básica</p>
+                    <h3 class="text-xl font-black italic mb-1 uppercase tracking-tighter">Primeiros 5K</h3>
+                    <p class="text-xs text-slate-400 mb-6 leading-tight">Complete seu primeiro treino de 5km sem parar.
+                    </p>
                     <div class="flex justify-between items-center">
                         <span class="text-xs font-black text-emerald-500 italic">+200 pts</span>
-                        <button onclick="acceptChallenge('Primeiros 5K', 200)"
-                            class="bg-emerald-500 text-black px-5 py-2 rounded-full font-black text-[10px] uppercase">Participar</button>
+                        <button onclick="acceptGlobalChallenge('Primeiros 5K', 12)"
+                            class="bg-emerald-500 text-black px-6 py-2.5 rounded-full font-black text-[10px] uppercase shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">Aceitar</button>
                     </div>
                 </div>
 
-                <div class="glass p-5 rounded-[32px] border-l-4 border-yellow-500">
-                    <p class="text-[8px] font-black text-yellow-500 uppercase mb-2">Intermediário</p>
-                    <h3 class="text-lg font-black italic mb-1 uppercase">Guerreiro da Semana</h3>
-                    <p class="text-xs text-slate-400 mb-4 font-medium">Corra 15km acumulados em 7 dias.</p>
+                <div class="glass p-6 rounded-[32px] border-l-4 border-yellow-500 bg-yellow-500/5">
+                    <p class="text-[8px] font-black text-yellow-500 uppercase mb-2">Acumulativo</p>
+                    <h3 class="text-xl font-black italic mb-1 uppercase tracking-tighter">Guerreiro da Semana</h3>
+                    <p class="text-xs text-slate-400 mb-6 leading-tight">Complete 25km totais em 7 dias consecutivos.
+                    </p>
                     <div class="flex justify-between items-center">
                         <span class="text-xs font-black text-yellow-500 italic">+500 pts</span>
-                        <button onclick="acceptChallenge('Guerreiro da Semana', 500)"
-                            class="bg-emerald-500 text-black px-5 py-2 rounded-full font-black text-[10px] uppercase">Participar</button>
-                    </div>
-                </div>
-
-                <div class="glass p-5 rounded-[32px] border-l-4 border-blue-500">
-                    <p class="text-[8px] font-black text-blue-500 uppercase mb-2">Elite</p>
-                    <h3 class="text-lg font-black italic mb-1 uppercase">Maratonista RB</h3>
-                    <p class="text-xs text-slate-400 mb-4 font-medium">Complete 42km totais no mês de Março.</p>
-                    <div class="flex justify-between items-center">
-                        <span class="text-xs font-black text-blue-500 italic">+1500 pts</span>
-                        <button onclick="acceptChallenge('Maratonista RB', 1500)"
-                            class="bg-emerald-500 text-black px-5 py-2 rounded-full font-black text-[10px] uppercase">Participar</button>
+                        <button onclick="acceptGlobalChallenge('Guerreiro da Semana', 25)"
+                            class="bg-emerald-500 text-black px-6 py-2.5 rounded-full font-black text-[10px] uppercase shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">Aceitar</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- TELA PROGRESSO -->
+        <!-- TELA PROGRESSO / STATUS -->
         <div id="tab-progresso" class="tab-content p-6 scroll-hide">
-            <h2 class="text-3xl font-black italic mb-8 mt-6 uppercase">MEU STATUS</h2>
-            <div class="glass p-5 rounded-3xl mb-8 h-[200px]">
+            <h2 class="text-3xl font-black italic mb-8 mt-6 uppercase italic">Meu Status</h2>
+            <div class="glass p-6 rounded-3xl mb-8 h-[220px]">
                 <canvas id="progressChart"></canvas>
             </div>
-            <!-- Análises Adicionais -->
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <div class="glass p-4 rounded-2xl">
-                    <p class="text-[8px] text-slate-400 font-bold uppercase mb-1">Carga</p>
-                    <p class="text-xl font-black text-emerald-500 italic">IDEAL</p>
-                </div>
-                <div class="glass p-4 rounded-2xl">
-                    <p class="text-[8px] text-slate-400 font-bold uppercase mb-1">Fadiga</p>
-                    <p class="text-xl font-black text-red-500 italic">BAIXA</p>
-                </div>
-            </div>
-            <div class="p-5 glass rounded-[24px] border-l-4 border-emerald-500">
-                <p class="text-[8px] font-black text-emerald-500 uppercase mb-1 italic tracking-widest">Treinador IA</p>
-                <p class="text-xs font-bold text-slate-200 italic leading-relaxed">
-                    "Consistência impecável, Marcio. Seu índice de performance em Guarulhos subiu 4%."
+            <div class="p-6 glass rounded-[32px] border-l-4 border-emerald-500">
+                <p class="text-[8px] font-black text-emerald-500 uppercase mb-2 tracking-widest">RitmoCoach IA Analyse
+                </p>
+                <p class="text-xs font-bold text-white italic leading-relaxed">
+                    "Você superou sua meta de pace em 3% esta semana. O cansaço muscular está sob controle."
                 </p>
             </div>
         </div>
 
-        <!-- NAVEGAÇÃO -->
+        <!-- SCREENS ADICIONAIS (MODAIS) -->
+        <div id="screen-week" class="h-full hidden flex flex-col bg-[#020617] scroll-hide">
+            <div class="p-6 flex items-center justify-between border-b border-white/5">
+                <button onclick="showScreen('tab-inicio')" class="p-3 glass rounded-2xl"><i data-lucide="chevron-left"
+                        class="w-5 h-5"></i></button>
+                <h2 class="text-sm font-black uppercase italic tracking-tighter">Meu Plano</h2>
+                <div class="w-10"></div>
+            </div>
+            <div class="p-6 space-y-4 overflow-y-auto pb-20">
+                <div class="p-5 glass rounded-2xl border-l-4 border-emerald-500">
+                    <p class="text-[8px] font-bold text-emerald-500 uppercase mb-1 italic">Segunda</p>
+                    <h4 class="font-black text-lg italic uppercase">Intervalado 5k</h4>
+                </div>
+                <div class="p-5 glass rounded-2xl border-l-4 border-slate-700 opacity-50">
+                    <p class="text-[8px] font-bold text-slate-500 uppercase mb-1">Terça</p>
+                    <h4 class="font-black text-lg text-slate-500 italic uppercase">Descanso</h4>
+                </div>
+                <div class="p-5 glass rounded-2xl border-l-4 border-emerald-500/30">
+                    <p class="text-[8px] font-bold text-slate-400 uppercase mb-1">Quarta</p>
+                    <h4 class="font-black text-lg italic uppercase">Rodagem Leve</h4>
+                    <p class="text-[10px] text-slate-500">6.0 km Pace 6:30</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-calendar" class="h-full hidden flex flex-col bg-[#020617]">
+            <div class="p-6 flex items-center justify-between border-b border-white/5">
+                <button onclick="showScreen('tab-inicio')" class="p-3 glass rounded-2xl"><i data-lucide="chevron-left"
+                        class="w-5 h-5"></i></button>
+                <h2 class="text-sm font-black uppercase italic tracking-tighter">Calendário Março</h2>
+                <div class="w-10"></div>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-7 gap-2 mb-8" id="mini-cal"></div>
+                <div class="glass p-6 rounded-3xl border border-white/5">
+                    <p class="text-[8px] font-black text-slate-500 uppercase mb-4 tracking-widest">Estatísticas do Mês
+                    </p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-2xl font-black italic">82.4</p>
+                            <p class="text-[8px] uppercase font-bold text-slate-600">KM Totais</p>
+                        </div>
+                        <div>
+                            <p class="text-2xl font-black italic">14</p>
+                            <p class="text-[8px] uppercase font-bold text-slate-600">Sessões</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SHARE OVERLAY -->
+        <div id="screen-share"
+            class="absolute inset-0 z-[200] hidden flex flex-col p-6 bg-[#020617] overflow-y-auto scroll-hide">
+            <div class="mb-6 p-6 glass rounded-[32px] border border-emerald-500/20">
+                <h3 class="text-sm font-black italic text-emerald-500 uppercase mb-1" id="final-ai-congrats">FENOMENAL,
+                    ATLETA!</h3>
+                <p class="text-xs text-white leading-snug font-bold italic mb-4" id="final-ai-text">Análise Concluída:
+                    Sua postura se manteve estável mesmo nos km finais. Ótimo trabalho!</p>
+                <div class="bg-emerald-500/10 p-4 rounded-2xl border border-emerald-500/10">
+                    <p class="text-[7px] font-black text-emerald-500 uppercase mb-1 tracking-widest italic">Dica do
+                        Treinador RB</p>
+                    <p class="text-[10px] text-white italic font-medium" id="final-ai-tip">Beba 500ml de água com
+                        eletrólitos para repor o suor de hoje.</p>
+                </div>
+            </div>
+            <div id="insta-card"
+                class="aspect-[9/12] rounded-[45px] relative overflow-hidden flex flex-col p-8 mb-6 shadow-2xl shadow-emerald-500/10 border border-white/5"
+                style="background: linear-gradient(135deg, #020617 0%, #064c31 100%);">
+                <div class="absolute inset-x-0 top-0 h-[50%] z-0 dark-map opacity-50" id="map-share"></div>
+                <div class="absolute inset-0 z-1 bg-gradient-to-b from-transparent via-[#020617]/50 to-[#020617]"></div>
+                <div class="flex justify-between items-start relative z-10">
+                    <div class="flex items-center gap-2"><img src="logo.png" class="w-10 h-10 object-contain shadow-lg"
+                            onerror="this.src='https://api.dicebear.com/7.x/initials/svg?seed=RB&backgroundColor=22c55e'">
+                        <div class="flex flex-col"><span
+                                class="font-black italic text-[11px] tracking-tighter leading-none">RITMO
+                                BRASIL</span><span
+                                class="text-[7px] font-bold text-slate-400 uppercase tracking-widest mt-1">Sessão
+                                Finalizada</span></div>
+                    </div>
+                </div>
+                <div class="flex-1 flex flex-col justify-end items-center text-center relative z-10 pb-4">
+                    <h2
+                        class="text-7xl font-black italic tracking-tighter text-white uppercase italic leading-[0.85] mb-8">
+                        RITMO<br><span class="text-emerald-500">MÁXIMO</span></h2>
+                    <div
+                        class="grid grid-cols-3 gap-6 w-full bg-black/40 py-6 px-4 rounded-[32px] backdrop-blur-xl border border-white/5">
+                        <div>
+                            <p class="text-xl font-black italic" id="f-dist">0.00</p>
+                            <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">KM</p>
+                        </div>
+                        <div>
+                            <p class="text-xl font-black italic" id="f-time">00:00</p>
+                            <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">MIN</p>
+                        </div>
+                        <div>
+                            <p class="text-xl font-black italic text-emerald-500" id="f-pace">0'00"</p>
+                            <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">PACE</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="location.reload()"
+                    class="py-4 glass rounded-3xl font-black uppercase text-[10px] text-slate-400">Página
+                    Inicial</button>
+                <button
+                    class="py-4 bg-emerald-500 text-black rounded-3xl font-black uppercase text-[10px] shadow-xl shadow-emerald-500/20 active:scale-95 transition-all">Baixar
+                    Card</button>
+            </div>
+        </div>
+
+        <!-- NAVEGAÇÃO INTERNA -->
         <nav class="nav-bar" id="bottom-nav">
             <div class="nav-item active-tab" onclick="switchTab('inicio')"><i data-lucide="home"></i><span>Início</span>
             </div>
@@ -337,106 +453,70 @@
             </div>
         </nav>
 
-        <!-- SHARE OVERLAY (Totalmente Instagramável) -->
-        <div id="screen-share"
-            class="absolute inset-0 z-[200] hidden flex flex-col p-6 bg-[#020617] overflow-y-auto scroll-hide">
-
-            <!-- Feedback da IA Premium -->
-            <div class="mb-6 p-6 glass rounded-[32px] border border-emerald-500/30 shadow-2xl shadow-emerald-500/5">
-                <div class="flex items-center gap-2 mb-2">
-                    <i data-lucide="star" class="w-4 h-4 text-emerald-500 fill-emerald-500"></i>
-                    <h3 class="text-sm font-black italic text-emerald-500 uppercase" id="ai-congrats">INCRÍVEL, MARCIO!
-                    </h3>
-                </div>
-                <p class="text-xs text-white leading-snug font-bold mb-4" id="ai-report-text">Alta performance
-                    detectada. Seu pace final foi 4.2% superior à média da semana.</p>
-                <div class="bg-emerald-500/10 p-3 rounded-2xl border border-emerald-500/20">
-                    <p class="text-[7px] font-black text-emerald-500 uppercase mb-1 tracking-widest">RitmoCoach IA Tip
-                    </p>
-                    <p class="text-[10px] text-white italic font-medium" id="ai-tip-text">"Hidrate-se com 500ml agora.
-                        Seu corpo precisa repor para o treino de amanhã."</p>
-                </div>
-            </div>
-
-            <!-- O CARD PARA O INSTAGRAM -->
-            <div id="insta-card"
-                class="aspect-[9/12] rounded-[45px] relative overflow-hidden flex flex-col p-8 mb-6 shadow-2xl insta-gradient border border-white/5">
-                <div class="absolute inset-x-0 top-0 h-[55%] z-0 dark-map opacity-60" id="map-share"></div>
-                <div class="absolute inset-0 z-1 bg-gradient-to-b from-transparent via-[#020617]/40 to-[#020617]"></div>
-
-                <!-- Branding Premium -->
-                <div class="flex justify-between items-start relative z-10">
-                    <div class="flex items-center gap-2">
-                        <img src="logo.png" class="w-10 h-10 object-contain shadow-lg"
-                            onerror="this.src='https://api.dicebear.com/7.x/initials/svg?seed=RB&backgroundColor=22c55e'">
-                        <div class="flex flex-col">
-                            <span class="font-black italic text-[11px] tracking-tighter leading-none">RITMO
-                                BRASIL</span>
-                            <span class="text-[7px] font-bold text-slate-400 uppercase tracking-widest mt-1">Guarulhos
-                                City</span>
-                        </div>
-                    </div>
-                    <div class="br-badge text-[9px] uppercase italic">IA VERIFIED 🇧🇷</div>
-                </div>
-
-                <!-- Métricas Centrais -->
-                <div class="flex-1 flex flex-col justify-end items-center text-center relative z-10 pb-4">
-                    <div class="w-16 h-1 bg-emerald-500/50 rounded-full mb-8"></div>
-                    <h2
-                        class="text-7xl font-black italic tracking-tighter text-white uppercase italic leading-[0.85] mb-8">
-                        RITMO<br><span class="text-emerald-500">MÁXIMO</span></h2>
-
-                    <div
-                        class="grid grid-cols-3 gap-8 w-full bg-black/30 py-6 px-4 rounded-[32px] backdrop-blur-xl border border-white/5">
-                        <div>
-                            <p class="text-2xl font-black italic text-white" id="f-dist">0.00</p>
-                            <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">KM</p>
-                        </div>
-                        <div>
-                            <p class="text-2xl font-black italic text-white" id="f-time">00:00</p>
-                            <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">TEMPO</p>
-                        </div>
-                        <div>
-                            <p class="text-2xl font-black italic text-emerald-500" id="f-pace">0'00"</p>
-                            <p class="text-[8px] font-black text-slate-500 uppercase tracking-widest">PACE</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <button onclick="location.reload()"
-                    class="py-4 glass rounded-3xl font-black uppercase text-[10px] tracking-widest text-slate-400">Página
-                    Inicial</button>
-                <button
-                    class="py-4 bg-emerald-500 text-black rounded-3xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-emerald-500/20 active:scale-95 transition-all">Baixar
-                    Card</button>
-            </div>
-        </div>
-
     </div>
 
     <script>
         lucide.createIcons();
-        let map, mapShare, pathLine, timerInterval, dist = 0, time = 0, pathCoords = [], currentPos = [-23.45, -46.53];
+        let map, mapRoute, mapShare, pathLine, timerInterval, dist = 0, time = 0, pathCoords = [], currentPos = [-23.45, -46.53];
         let chart;
 
+        // Inicialização de Localização Real
+        function setupInitialLocation() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(pos => {
+                    currentPos = [pos.coords.latitude, pos.coords.longitude];
+                    if (map) map.setView(currentPos, 16);
+                });
+            }
+        }
+        setupInitialLocation();
+
         function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active-screen'));
+            document.querySelectorAll('.tab-content, #screen-week, #screen-calendar').forEach(c => {
+                c.classList.add('hidden');
+                c.classList.remove('active-screen');
+            });
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active-tab'));
-            document.getElementById(`tab-${tabId}`).classList.add('active-screen');
-            event?.currentTarget?.classList.add('active-tab');
+
+            const target = document.getElementById(`tab-${tabId}`);
+            target.classList.remove('hidden');
+            target.classList.add('active-screen');
+
+            const navItems = document.querySelectorAll('.nav-bar .nav-item');
+            const ids = ['inicio', 'mapa', 'correr', 'desafios', 'progresso'];
+            navItems[ids.indexOf(tabId)].classList.add('active-tab');
+
             if (tabId === 'correr') initMapRun();
+            if (tabId === 'mapa') initMapRoute();
             if (tabId === 'progresso') initChart();
             lucide.createIcons();
         }
 
-        function acceptChallenge(name, pts) {
-            const homeDiv = document.getElementById('home-challenge');
-            document.getElementById('home-challenge-name').innerText = name.toUpperCase();
-            homeDiv.classList.remove('hidden');
-            alert(`Desafio "${name}" aceito! Progresso agora visível na tela inicial.`);
+        function showScreen(id) {
+            document.querySelectorAll('.tab-content, div[id^="screen-"]').forEach(s => s.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            if (id === 'screen-calendar') renderCalendar();
+            lucide.createIcons();
+        }
+
+        // DESAFIOS
+        function acceptGlobalChallenge(name, startPerc) {
+            document.getElementById('home-challenge-box').classList.remove('hidden');
+            document.getElementById('home-challenge-display-name').innerText = name.toUpperCase();
+            document.getElementById('home-challenge-bar').style.width = startPerc + "%";
+            document.getElementById('home-challenge-perc text-yellow-500').innerText = startPerc + "%";
+            alert(`Desafio "${name}" Aceito! Confira o progresso na tela inicial.`);
             switchTab('inicio');
+        }
+
+        // MAPAS
+        function initMapRoute() {
+            setTimeout(() => {
+                if (!mapRoute) {
+                    mapRoute = L.map('map-route', { zoomControl: false, attributionControl: false }).setView(currentPos, 14);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRoute);
+                }
+            }, 100);
         }
 
         function initMapRun() {
@@ -447,6 +527,31 @@
                     pathLine = L.polyline([], { color: '#22C55E', weight: 8 }).addTo(map);
                 }
             }, 100);
+        }
+
+        function mockRouteSuggestion() {
+            alert("IA analizando sua localização... Sugestão: Rota de 4km circular pelo bairro detectada!");
+            L.circle(currentPos, { radius: 2000, color: '#22C55E', fillOpacity: 0.1 }).addTo(mapRoute);
+        }
+
+        function enableCustomRoute() {
+            alert("Modo manual ativo: Toque no mapa para definir pontos de passagem.");
+        }
+
+        // CORRIDA
+        function requestRealLocationAndStart() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(pos => {
+                    currentPos = [pos.coords.latitude, pos.coords.longitude];
+                    if (map) map.setView(currentPos, 16);
+                    startRun();
+                }, err => {
+                    alert("Para melhor precisão, habilite o GPS. Iniciando em modo padrão.");
+                    startRun();
+                });
+            } else {
+                startRun();
+            }
         }
 
         function startRun() {
@@ -476,20 +581,9 @@
         function finishRun() {
             clearInterval(timerInterval);
             document.getElementById('screen-share').classList.remove('hidden');
-
-            // Update both Post-AI and Share Card metrics
-            const fDist = dist.toFixed(2);
-            const fTime = document.getElementById('time-display').innerText;
-            const fPace = document.getElementById('pace-display').innerText;
-
-            document.querySelectorAll('#f-dist').forEach(el => el.innerText = fDist);
-            document.querySelectorAll('#f-time').forEach(el => el.innerText = fTime);
-            document.querySelectorAll('#f-pace').forEach(el => el.innerText = fPace);
-
-            // AI Logic
-            const msgs = ["Sensacional!", "Treino Brabo!", "Ritmo Monstro!", "Meta Batida!"];
-            document.getElementById('ai-congrats').innerText = msgs[Math.floor(Math.random() * msgs.length)].toUpperCase();
-
+            document.getElementById('f-dist').innerText = dist.toFixed(2);
+            document.getElementById('f-time').innerText = document.getElementById('time-display').innerText;
+            document.getElementById('f-pace').innerText = document.getElementById('pace-display').innerText;
             setTimeout(() => {
                 if (!mapShare) {
                     mapShare = L.map('map-share', { zoomControl: false, attributionControl: false }).setView(currentPos, 15);
@@ -499,12 +593,23 @@
             }, 300);
         }
 
+        function renderCalendar() {
+            const cal = document.getElementById('mini-cal');
+            cal.innerHTML = '';
+            for (let i = 1; i <= 31; i++) {
+                const d = document.createElement('div');
+                d.className = `aspect-square flex items-center justify-center text-[10px] rounded-xl ${i < 10 ? 'bg-emerald-500 text-black font-black italic shadow-lg shadow-emerald-500/20' : 'bg-slate-900 border border-white/5 text-slate-500'}`;
+                d.innerText = i;
+                cal.appendChild(d);
+            }
+        }
+
         function initChart() {
             const ctx = document.getElementById('progressChart').getContext('2d');
             if (chart) chart.destroy();
             chart = new Chart(ctx, {
                 type: 'bar',
-                data: { labels: ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'], datasets: [{ data: [5, 0, 6, 0, 10, 4, 12], backgroundColor: '#22C55E', borderRadius: 6 }] },
+                data: { labels: ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'], datasets: [{ data: [5, 2, 8, 0, 12, 4, 15], backgroundColor: '#22C55E', borderRadius: 6 }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
             });
         }
