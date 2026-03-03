@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ritmo Brasil (RB) - Google Pro v3.1</title>
+    <title>Ritmo Brasil (RB) - Pro v3.5 Ultra</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -61,14 +61,18 @@
         #map-share {
             height: 100%;
             width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
 
-        /* Melhorias no Mapa Sugeridas: Usando CartoDB Dark Matter para visual profissional sem filtros pesados */
         .tab-content {
             flex: 1;
             overflow-y: auto;
             padding-bottom: 100px;
             display: none;
+            height: 100%;
+            position: relative;
         }
 
         .active-screen {
@@ -114,6 +118,21 @@
             letter-spacing: 0.05em;
         }
 
+        .map-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+
         .running-overlay {
             position: absolute;
             bottom: 30px;
@@ -124,7 +143,7 @@
         }
 
         .stats-float {
-            background: rgba(15, 23, 42, 0.9);
+            background: rgba(15, 23, 42, 0.95);
             backdrop-filter: blur(16px);
             border: 1px solid rgba(34, 197, 94, 0.3);
             border-radius: 28px;
@@ -147,35 +166,47 @@
             cursor: pointer;
         }
 
-        .modal-up {
-            animation: slideUp 0.3s ease-out;
-        }
-
-        @keyframes slideUp {
-            from {
-                transform: translateY(100%);
-            }
-
-            to {
-                transform: translateY(0);
-            }
-        }
-
-        /* Custom Route Drawing Indicator */
-        #route-indicator {
-            display: none;
+        .challenge-info-modal {
             position: absolute;
-            top: 100px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #0f172a;
+            border-radius: 32px 32px 0 0;
+            padding: 30px;
+            z-index: 200;
+            transform: translateY(100%);
+            transition: transform 0.3s ease-out;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .challenge-info-modal.active {
+            transform: translateY(0);
+        }
+
+        /* User Marker Pulse */
+        .user-marker {
+            width: 14px;
+            height: 14px;
             background: #22C55E;
-            color: black;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: 800;
-            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 0 15px #22C55E;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 15px rgba(34, 197, 94, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+            }
         }
     </style>
 </head>
@@ -198,8 +229,9 @@
 
                 <div class="glass rounded-3xl p-6 border-l-4 border-emerald-500">
                     <div class="flex justify-between items-center mb-4">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ritmo Score</span>
-                        <span class="text-xl font-black text-emerald-500">2,850 pts</span>
+                        <span
+                            class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Status</span>
+                        <span class="text-xl font-black text-emerald-500 leading-none">2,850 pts</span>
                     </div>
                     <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
                         <div class="bg-emerald-500 h-full" style="width: 65%"></div>
@@ -209,10 +241,9 @@
                 <div class="bg-slate-900/60 rounded-3xl p-6 border border-white/5 relative">
                     <div class="flex items-center gap-2 mb-2">
                         <i data-lucide="zap" class="w-4 h-4 text-emerald-500"></i>
-                        <span class="text-[10px] font-black text-emerald-500 uppercase italic">Plano IA</span>
+                        <span class="text-[10px] font-black text-emerald-500 uppercase italic">Plano do Dia</span>
                     </div>
-                    <h3 class="text-2xl font-black italic tracking-tighter mb-4 uppercase" id="today-goal-title">
-                        Intervalado 5KM</h3>
+                    <h3 class="text-2xl font-black italic tracking-tighter mb-4 uppercase">Intervalado 5KM</h3>
                     <div class="grid grid-cols-2 gap-3 mb-6">
                         <button onclick="showScreen('screen-week')"
                             class="py-3 glass rounded-2xl text-[10px] font-bold uppercase text-slate-300">Meu
@@ -232,20 +263,22 @@
             <div class="p-6 flex items-center justify-between border-b border-white/5 bg-slate-950/80 backdrop-blur-md">
                 <button onclick="showScreen('tab-inicio')" class="p-3 glass rounded-2xl"><i data-lucide="chevron-left"
                         class="w-5 h-5"></i></button>
-                <h2 class="text-sm font-black uppercase italic tracking-tighter">Falar com Coach IA</h2>
+                <h2 class="text-sm font-black uppercase italic tracking-tighter">Coach IA</h2>
                 <div class="w-10"></div>
             </div>
             <div class="flex-1 overflow-y-auto p-6 space-y-4" id="chat-messages">
                 <div class="flex gap-3">
-                    <div class="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">IA</div>
+                    <div
+                        class="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 text-[10px] font-black">
+                        IA</div>
                     <div
                         class="glass p-4 rounded-2xl rounded-tl-none text-xs font-bold italic text-emerald-500 max-w-[80%] uppercase">
-                        Diga Marcio! Qual sua dúvida de hoje?</div>
+                        Diga Marcio! Como posso ajudar você?</div>
                 </div>
             </div>
             <div class="p-6 bg-slate-950">
                 <div class="flex gap-2">
-                    <input type="text" id="chat-input" placeholder="Pergunte algo..."
+                    <input type="text" id="chat-input" placeholder="Escreva aqui..."
                         class="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-xs focus:outline-none">
                     <button onclick="sendMessage()" class="p-4 bg-emerald-500 text-black rounded-2xl"><i
                             data-lucide="send" class="w-5 h-5"></i></button>
@@ -253,24 +286,38 @@
             </div>
         </div>
 
-        <!-- TELA MAPA (ROTA PERSONALIZADA) -->
+        <!-- TELA MAPA -->
         <div id="tab-mapa" class="tab-content h-full relative">
             <div id="map-route" class="absolute inset-0 z-0"></div>
-            <div id="route-indicator">MODO DESENHO: TOQUE NO MAPA</div>
+            <div class="map-toggle glass text-emerald-500" onclick="toggleMapTheme('map-route')"><i
+                    data-lucide="palette"></i></div>
+
             <div class="relative z-10 p-6 flex flex-col h-full pointer-events-none">
-                <div
-                    class="glass p-6 rounded-[32px] pointer-events-auto bg-slate-950/90 mt-12 border border-emerald-500/10">
-                    <h3 class="text-sm font-black italic mb-6 uppercase text-emerald-500">Personalizar Traçado</h3>
-                    <div class="space-y-4">
-                        <button onclick="suggestLiveRoute()"
-                            class="w-full bg-emerald-500 text-black py-4 rounded-2xl font-black text-xs uppercase tracking-tighter">Sugerir
-                            Rota Agora</button>
-                        <button onclick="startDrawingRoute()"
-                            class="w-full bg-white/5 border border-white/10 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-tighter">Desenhar
-                            Minha Rota</button>
-                        <button onclick="clearRoute()" id="btn-clear-route"
-                            class="w-full hidden bg-red-500/10 border border-red-500/20 text-red-500 py-3 rounded-2xl font-bold text-[10px] uppercase">Limpar
-                            Mapa</button>
+                <div class="mt-auto pointer-events-auto flex flex-col gap-4 mb-2">
+                    <div id="route-menu" class="glass p-6 rounded-[32px] bg-slate-950/90 border border-emerald-500/10">
+                        <h3 class="text-xs font-black italic mb-4 uppercase text-emerald-500 tracking-widest">Opções de
+                            Percurso</h3>
+                        <div id="map-buttons" class="space-y-3">
+                            <button onclick="suggestLiveRoute()"
+                                class="w-full bg-emerald-500 text-black py-4 rounded-2xl font-black text-xs uppercase tracking-tighter active:scale-95 transition-all">Sugerir
+                                Rota Local</button>
+                            <button onclick="startDrawingRoute()"
+                                class="w-full bg-white/5 border border-white/10 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-tighter">Traçar
+                                Trajeto Manual</button>
+                        </div>
+                    </div>
+
+                    <div id="route-confirm"
+                        class="hidden glass p-6 rounded-[32px] bg-emerald-500 border border-white/10 flex flex-col items-center text-center">
+                        <h4 class="text-black font-black italic text-lg uppercase mb-4 tracking-tighter">Percurso
+                            Pronto!</h4>
+                        <div class="flex gap-3 w-full">
+                            <button onclick="confirmRouteAndStart()"
+                                class="flex-1 bg-black text-white py-4 rounded-2xl font-black text-[10px] uppercase">Iniciar
+                                Corrida</button>
+                            <button onclick="clearMap('map-route')"
+                                class="flex-1 bg-black/10 text-black py-4 rounded-2xl font-black text-[10px] uppercase">Refazer</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -279,6 +326,9 @@
         <!-- TELA CORRER -->
         <div id="tab-correr" class="tab-content h-full relative">
             <div id="map" class="absolute inset-0 z-0"></div>
+            <div class="map-toggle glass text-emerald-500" onclick="toggleMapTheme('map')"><i data-lucide="palette"></i>
+            </div>
+
             <div class="running-overlay hidden" id="running-ui">
                 <div class="stats-float shadow-2xl">
                     <div class="text-center">
@@ -297,52 +347,49 @@
                             class="w-5 h-5 fill-current"></i></div>
                 </div>
             </div>
+
             <div class="absolute inset-0 flex items-center justify-center z-[60]" id="start-btn-container">
-                <button onclick="startRun()"
+                <button onclick="switchTab('mapa')"
                     class="w-24 h-24 bg-emerald-500 text-black rounded-full font-black uppercase italic shadow-2xl shadow-emerald-500/50 flex flex-col items-center justify-center gap-1 active:scale-95">
-                    <i data-lucide="play" class="w-8 h-8 fill-current"></i><span class="text-[8px]">Iniciar</span>
+                    <i data-lucide="map-pin" class="w-8 h-8 fill-current"></i><span class="text-[8px]">Ver Mapa</span>
                 </button>
             </div>
         </div>
 
-        <!-- TELA DESAFIOS -->
         <div id="tab-desafios" class="tab-content p-6 scroll-hide">
-            <h2 class="text-3xl font-black italic mb-8 mt-6 uppercase">Missões</h2>
+            <h2 class="text-3xl font-black italic mb-8 mt-6 uppercase italic">Missões</h2>
             <div class="space-y-4" id="all-challenges-list"></div>
         </div>
 
-        <!-- TELA PROGRESSO (MAIS PARÂMETROS) -->
         <div id="tab-progresso" class="tab-content p-6 scroll-hide">
-            <h2 class="text-3xl font-black italic mb-8 mt-6 uppercase tracking-tighter">Análise Pro</h2>
+            <h2 class="text-3xl font-black italic mb-8 mt-6 uppercase tracking-tighter">Status Pro</h2>
             <div class="glass p-6 rounded-3xl mb-6 h-[200px]"><canvas id="progressChart"></canvas></div>
-
             <div class="grid grid-cols-2 gap-4 mb-6">
-                <div class="glass p-5 rounded-3xl border-b-2 border-emerald-500">
-                    <p class="text-[7px] font-black text-slate-500 uppercase mb-1">Cadência Média</p>
+                <div class="glass p-5 rounded-3xl">
+                    <p class="text-[7px] font-black text-slate-500 uppercase">Cadência</p>
                     <p class="text-xl font-black text-white italic">174 <span
                             class="text-[9px] text-emerald-500">SPM</span></p>
                 </div>
-                <div class="glass p-5 rounded-3xl border-b-2 border-orange-500">
-                    <p class="text-[7px] font-black text-slate-500 uppercase mb-1">Ganho Elev.</p>
-                    <p class="text-xl font-black text-white italic">142 <span
-                            class="text-[9px] text-orange-500">M</span></p>
-                </div>
-                <div class="glass p-5 rounded-3xl border-b-2 border-blue-500">
-                    <p class="text-[7px] font-black text-slate-500 uppercase mb-1">VFC (Recuperação)</p>
-                    <p class="text-xl font-black text-white italic">68 <span class="text-[9px] text-blue-500">MS</span>
-                    </p>
-                </div>
-                <div class="glass p-5 rounded-3xl border-b-2 border-red-500">
-                    <p class="text-[7px] font-black text-slate-500 uppercase mb-1">VO2 Max Est.</p>
-                    <p class="text-xl font-black text-white italic">52 <span class="text-[9px] text-red-500">UNIT</span>
+                <div class="glass p-5 rounded-3xl">
+                    <p class="text-[7px] font-black text-slate-500 uppercase">VO2 Max</p>
+                    <p class="text-xl font-black text-white italic">52 <span class="text-[9px] text-red-500">EST.</span>
                     </p>
                 </div>
             </div>
+        </div>
 
-            <div class="p-5 glass rounded-[24px] border-l-4 border-emerald-500">
-                <p class="text-[8px] font-black text-emerald-500 uppercase mb-1">Score de Prontidão IA</p>
-                <p class="text-xs font-bold text-slate-200 italic leading-relaxed">"Sua carga de treinamento está 15%
-                    acima do planejado. Amanhã deve ser descanso."</p>
+        <!-- MODAL INFORMAÇÕES DESAFIO -->
+        <div id="modal-challenge" class="challenge-info-modal shadow-2xl">
+            <div class="w-12 h-1 bg-white/10 rounded-full mx-auto mb-6"></div>
+            <h3 id="modal-challenge-title" class="text-2xl font-black italic uppercase italic text-emerald-500 mb-2">
+            </h3>
+            <p id="modal-challenge-desc" class="text-sm text-slate-300 italic mb-8"></p>
+            <div class="flex flex-col gap-3">
+                <button onclick="finishChallengeFromModal()"
+                    class="w-full py-4 bg-emerald-500 text-black font-black rounded-2xl uppercase italic tracking-tighter">Finalizar
+                    Agora</button>
+                <button onclick="hideChallengeModal()"
+                    class="w-full py-4 bg-white/5 border border-white/10 text-white font-black rounded-2xl uppercase italic text-[10px]">Fechar</button>
             </div>
         </div>
 
@@ -360,34 +407,29 @@
         <!-- SHARE OVERLAY -->
         <div id="screen-share"
             class="absolute inset-0 z-[200] hidden flex flex-col p-6 bg-[#020617] overflow-y-auto scroll-hide">
-            <div class="mb-6 p-6 glass rounded-[32px] border border-emerald-500/20">
-                <h3 class="text-sm font-black italic text-emerald-500 uppercase mb-1" id="share-report-title">AVALIAÇÃO
-                    FINAL</h3>
+            <div class="mb-6 p-6 glass rounded-[32px] border border-emerald-500/20 shadow-2xl">
+                <h3 class="text-sm font-black italic text-emerald-500 uppercase mb-1" id="share-report-title">RELATÓRIO
+                    IA</h3>
                 <p class="text-xs text-white leading-snug font-bold italic mb-4" id="share-report-desc">Analisando seu
-                    desempenho comparado ao objetivo...</p>
-                <div class="bg-emerald-500/10 p-4 rounded-2xl border border-emerald-500/10" id="share-report-block">
-                    <p class="text-[7px] font-black text-emerald-500 uppercase mb-1 tracking-widest italic"
-                        id="share-report-label">FEEDBACK IA</p>
-                    <p class="text-[10px] text-white italic font-medium" id="share-report-feedback">Aguardando dados...
-                    </p>
-                </div>
+                    desempenho...</p>
             </div>
             <div id="insta-card"
-                class="aspect-[9/12] rounded-[45px] relative overflow-hidden flex flex-col p-8 mb-6 insta-gradient">
+                class="aspect-[9/12] rounded-[45px] relative overflow-hidden flex flex-col p-8 mb-6 insta-gradient border border-white/5 shadow-2xl">
                 <div class="absolute inset-x-0 top-0 h-[50%] z-0" id="map-share"></div>
                 <div class="absolute inset-0 z-1 bg-gradient-to-b from-transparent via-[#020617]/50 to-[#020617]"></div>
                 <div class="flex-1 flex flex-col justify-end items-center text-center relative z-10">
                     <h2
                         class="text-7xl font-black italic tracking-tighter text-white uppercase italic leading-[0.85] mb-8">
                         RITMO<br><span class="text-emerald-500">MÁXIMO</span></h2>
-                    <div class="grid grid-cols-3 gap-6 w-full bg-black/40 py-6 px-4 rounded-[32px] backdrop-blur-xl">
+                    <div
+                        class="grid grid-cols-3 gap-6 w-full bg-black/40 py-6 px-4 rounded-[32px] backdrop-blur-xl border border-white/5">
                         <div>
                             <p class="text-xl font-black italic text-white" id="f-dist">0.00</p>
                             <p class="text-[8px] font-black text-slate-500 uppercase">KM</p>
                         </div>
                         <div>
                             <p class="text-xl font-black italic text-white" id="f-time">00:00</p>
-                            <p class="text-[8px] font-black text-slate-500 uppercase">MIN</p>
+                            <p class="text-[8px] font-black text-slate-500 uppercase">TIME</p>
                         </div>
                         <div>
                             <p class="text-xl font-black italic text-emerald-500" id="f-pace">0'00"</p>
@@ -397,7 +439,7 @@
                 </div>
             </div>
             <button onclick="location.reload()"
-                class="w-full py-5 bg-white text-black font-black rounded-3xl uppercase italic tracking-tighter">Finalizar
+                class="w-full py-5 bg-white text-black font-black rounded-3xl mb-8 uppercase italic tracking-tighter">Concluir
                 Sessão</button>
         </div>
 
@@ -405,38 +447,64 @@
 
     <script>
         lucide.createIcons();
-        let map, mapRoute, mapShare, pathLine, timerInterval, dist = 0, time = 0, pathCoords = [], currentPos = [-23.45, -46.53];
-        let routeLayer, drawingPoints = [], isDrawing = false;
-        let activeChallenges = [];
+        let maps = {}, mapThemes = {};
+        let pathLine, activePathLine, userMarker, timerInterval, dist = 0, time = 0, pathCoords = [], currentPos = [-23.45, -46.53];
+        let drawingPoints = [], isDrawing = false, routePreview;
+        let activeChallenges = [], selectedChallengeId = null;
+
         const allChallenges = [
-            { id: '5k', name: 'Meta: 5K', desc: 'Complete 5km diretos.', pts: 200 },
-            { id: 'streak', name: '7 Dias Ativo', desc: 'Mantenha a constância.', pts: 500 }
+            { id: '5k', name: 'Meta: 5K', desc: 'Corra seus primeiros 5km sem pausa.', pts: 200 },
+            { id: '15k', name: 'Resiliência', desc: 'Soma total de 15km nesta semana.', pts: 500 }
         ];
 
-        const todayGoal = { title: 'Intervalado 5KM', km: 5.0 };
-
         function init() {
-            setupMaps();
+            setupGeolocation();
             renderChallenges();
-            updateHomeChallenges();
+            updateActiveChallengesUI();
         }
 
-        // MAPAS DE ALTA QUALIDADE (CARTODB DARK MATTER)
-        function setupMaps() {
+        function setupGeolocation() {
             if ("geolocation" in navigator) {
-                navigator.geolocation.getCurrentPosition(pos => {
-                    currentPos = [pos.coords.latitude, pos.coords.longitude];
+                navigator.geolocation.watchPosition(pos => {
+                    const newPos = [pos.coords.latitude, pos.coords.longitude];
+                    currentPos = newPos;
+                    updateUserMarker(newPos);
                 });
             }
         }
 
-        function initMapProvider(containerId) {
-            // Usando CartoDB Dark Matter (Visual Dark de Altíssima Qualidade similar ao Google Dark)
-            const mapInstance = L.map(containerId, { zoomControl: false, attributionControl: false }).setView(currentPos, 16);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                maxZoom: 19
-            }).addTo(mapInstance);
-            return mapInstance;
+        function initMap(id, container) {
+            if (maps[id]) return maps[id];
+            const m = L.map(container, { zoomControl: false, attributionControl: false }).setView(currentPos, 16);
+            mapThemes[id] = 'dark';
+            applyTheme(m, 'dark');
+            maps[id] = m;
+            return m;
+        }
+
+        function applyTheme(m, theme) {
+            m.eachLayer(l => m.removeLayer(l));
+            const url = theme === 'dark'
+                ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+                : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+            L.tileLayer(url).addTo(m);
+        }
+
+        function toggleMapTheme(id) {
+            mapThemes[id] = mapThemes[id] === 'dark' ? 'light' : 'dark';
+            applyTheme(maps[id], mapThemes[id]);
+            if (id === 'map' && userMarker) userMarker.addTo(maps[id]);
+        }
+
+        function updateUserMarker(pos) {
+            Object.values(maps).forEach(m => {
+                if (!m.currentMarker) {
+                    const icon = L.divIcon({ className: 'user-marker', iconSize: [14, 14] });
+                    m.currentMarker = L.marker(pos, { icon }).addTo(m);
+                } else {
+                    m.currentMarker.setLatLng(pos);
+                }
+            });
         }
 
         function switchTab(tabId) {
@@ -446,17 +514,15 @@
             target.classList.remove('hidden');
             target.classList.add('active-screen');
 
-            const navItems = document.querySelectorAll('.nav-bar .nav-item');
             const ids = ['inicio', 'mapa', 'correr', 'desafios', 'progresso'];
-            navItems[ids.indexOf(tabId)].classList.add('active-tab');
+            document.querySelectorAll('.nav-bar .nav-item')[ids.indexOf(tabId)].classList.add('active-tab');
 
-            if (tabId === 'correr' && !map) {
-                map = initMapProvider('map');
-                pathLine = L.polyline([], { color: '#22C55E', weight: 8, opacity: 0.8 }).addTo(map);
+            if (tabId === 'mapa') {
+                const m = initMap('map-route', 'map-route');
+                m.on('click', onMapClick);
             }
-            if (tabId === 'mapa' && !mapRoute) {
-                mapRoute = initMapProvider('map-route');
-                mapRoute.on('click', onMapClick);
+            if (tabId === 'correr') {
+                initMap('map', 'map');
             }
             if (tabId === 'progresso') initChart();
             lucide.createIcons();
@@ -468,44 +534,52 @@
             lucide.createIcons();
         }
 
-        // LÓGICA DE TRAÇAR ROTA
+        // MAPA LÓGICA
+        function suggestLiveRoute() {
+            const m = maps['map-route'];
+            const p = currentPos;
+            const pts = [[p[0], p[1]], [p[0] + 0.004, p[1] + 0.003], [p[0] + 0.002, p[1] - 0.005], [p[0], p[1]]];
+            if (routePreview) m.removeLayer(routePreview);
+            routePreview = L.polyline(pts, { color: '#22C55E', weight: 6 }).addTo(m);
+            m.fitBounds(routePreview.getBounds());
+            document.getElementById('route-menu').classList.add('hidden');
+            document.getElementById('route-confirm').classList.remove('hidden');
+        }
+
         function startDrawingRoute() {
             isDrawing = true;
             drawingPoints = [];
-            if (routeLayer) mapRoute.removeLayer(routeLayer);
-            document.getElementById('route-indicator').style.display = 'block';
-            document.getElementById('btn-clear-route').classList.remove('hidden');
+            alert("Modo desenho ativo: Toque no mapa para definir sua rota.");
         }
 
         function onMapClick(e) {
             if (!isDrawing) return;
             drawingPoints.push([e.latlng.lat, e.latlng.lng]);
-            if (routeLayer) mapRoute.removeLayer(routeLayer);
-            routeLayer = L.polyline(drawingPoints, { color: '#22C55E', weight: 6, dashArray: '10, 10' }).addTo(mapRoute);
-            L.circleMarker(e.latlng, { radius: 5, color: '#22C55E', fillOpacity: 1 }).addTo(mapRoute);
+            const m = maps['map-route'];
+            if (routePreview) m.removeLayer(routePreview);
+            routePreview = L.polyline(drawingPoints, { color: '#22C55E', weight: 6, dashArray: '8, 8' }).addTo(m);
+            L.circleMarker(e.latlng, { radius: 6, color: '#22C55E', fillOpacity: 0.8 }).addTo(m);
+
+            if (drawingPoints.length >= 2) {
+                document.getElementById('route-menu').classList.add('hidden');
+                document.getElementById('route-confirm').classList.remove('hidden');
+            }
         }
 
-        function clearRoute() {
-            if (routeLayer) mapRoute.removeLayer(routeLayer);
-            drawingPoints = [];
-            isDrawing = false;
-            document.getElementById('route-indicator').style.display = 'none';
-            document.getElementById('btn-clear-route').classList.add('hidden');
+        function confirmRouteAndStart() {
+            switchTab('correr');
+            const m = maps['map'];
+            if (routePreview) {
+                L.polyline(routePreview.getLatLngs(), { color: 'rgba(34, 197, 94, 0.3)', weight: 8, dashArray: '10, 10' }).addTo(m);
+            }
         }
 
-        function suggestLiveRoute() {
-            if (routeLayer) mapRoute.removeLayer(routeLayer);
-            // Gera uma rota circular simulada a partir do ponto atual
-            const lat = currentPos[0], lng = currentPos[1];
-            const sugg = [
-                [lat, lng],
-                [lat + 0.005, lng + 0.005],
-                [lat + 0.008, lng - 0.002],
-                [lat, lng]
-            ];
-            routeLayer = L.polyline(sugg, { color: '#22C55E', weight: 8, opacity: 0.9 }).addTo(mapRoute);
-            mapRoute.fitBounds(routeLayer.getBounds());
-            alert("IA calculou a Rota do Lago (3.2km). Traçado em verde no mapa!");
+        function clearMap(id) {
+            const m = maps[id];
+            if (routePreview) m.removeLayer(routePreview);
+            drawingPoints = []; isDrawing = false;
+            document.getElementById('route-menu').classList.remove('hidden');
+            document.getElementById('route-confirm').classList.add('hidden');
         }
 
         // CORRIDA
@@ -513,13 +587,19 @@
             document.getElementById('start-btn-container').classList.add('hidden');
             document.getElementById('bottom-nav').style.transform = 'translateY(100px)';
             document.getElementById('running-ui').classList.remove('hidden');
+            const m = maps['map'];
+            activePathLine = L.polyline([], { color: '#22C55E', weight: 8, opacity: 0.9 }).addTo(m);
+            pathCoords = [[currentPos[0], currentPos[1]]];
+
             timerInterval = setInterval(() => {
-                time++; dist += 0.005;
+                time++; dist += 0.003;
+                // Simula movimento GPS seguindo a rota ou aleatório
                 currentPos[0] += (Math.random() - 0.5) * 0.0001;
                 currentPos[1] += (Math.random() - 0.5) * 0.0001;
                 pathCoords.push([...currentPos]);
-                pathLine.setLatLngs(pathCoords);
-                map.panTo(currentPos);
+                activePathLine.setLatLngs(pathCoords);
+                updateUserMarker(currentPos);
+                m.panTo(currentPos);
                 updateMetrics();
             }, 1000);
         }
@@ -541,40 +621,26 @@
             document.getElementById('f-time').innerText = document.getElementById('time-display').innerText;
             document.getElementById('f-pace').innerText = document.getElementById('pace-display').innerText;
 
-            // FEEDBACK BASEADO NO OBJETIVO DO DIA
-            const goalKm = todayGoal.km;
-            if (dist >= goalKm) {
-                document.getElementById('share-report-title').innerText = "OBJETIVO CONCLUÍDO! ✅";
-                document.getElementById('share-report-feedback').innerText = `Você planejou ${goalKm}km e entregou ${dist.toFixed(2)}km. Seu RitmoCoach IA está orgulhoso!`;
-                document.getElementById('share-report-block').style.background = 'rgba(34, 197, 94, 0.2)';
-            } else {
-                document.getElementById('share-report-title').innerText = "QUASE LÁ, MARCIO! 🏁";
-                document.getElementById('share-report-feedback').innerText = `O objetivo era ${goalKm}km, você correu ${dist.toFixed(2)}km. Não pare, amanhã é dia de ajuste!`;
-                document.getElementById('share-report-block').style.background = 'rgba(239, 68, 68, 0.2)';
-            }
-
             setTimeout(() => {
-                if (!mapShare) {
-                    mapShare = initMapProvider('map-share');
-                    L.polyline(pathCoords, { color: '#22C55E', weight: 12 }).addTo(mapShare);
-                    mapShare.fitBounds(L.polyline(pathCoords).getBounds());
-                }
+                const mS = initMap('map-share', 'map-share');
+                L.polyline(pathCoords, { color: '#22C55E', weight: 12 }).addTo(mS);
+                mS.fitBounds(L.polyline(pathCoords).getBounds());
             }, 300);
         }
 
-        // DESAFIOS
+        // DESAFIOS E MODAL
         function renderChallenges() {
             const list = document.getElementById('all-challenges-list');
             list.innerHTML = '';
             allChallenges.forEach(c => {
-                const accepted = activeChallenges.find(ac => ac.id === c.id);
+                const acc = activeChallenges.find(a => a.id === c.id);
                 list.innerHTML += `
                 <div class="glass p-6 rounded-[32px] border-l-4 border-emerald-500">
-                    <h3 class="text-xl font-black italic uppercase italic">${c.name}</h3>
+                    <h3 class="text-xl font-black italic uppercase">${c.name}</h3>
                     <p class="text-xs text-slate-400 mb-6 font-medium">${c.desc}</p>
                     <div class="flex justify-between items-center">
                         <span class="text-xs font-black text-emerald-500">+${c.pts} PTS</span>
-                        ${accepted ? '<span class="text-[9px] font-bold text-slate-500 uppercase">Ativado</span>' :
+                        ${acc ? '<span class="text-[9px] font-bold text-slate-500 uppercase">Ativo</span>' :
                         `<button onclick="acceptChallenge('${c.id}')" class="bg-emerald-500 text-black px-6 py-2 rounded-full font-black text-[10px] uppercase">Aceitar</button>`}
                     </div>
                 </div>
@@ -583,36 +649,49 @@
         }
 
         function acceptChallenge(id) {
-            const c = allChallenges.find(ch => ch.id === id);
-            activeChallenges.push({ ...c, progress: 15 });
-            updateHomeChallenges();
+            const c = allChallenges.find(a => a.id === id);
+            activeChallenges.push({ ...c, progress: 12 });
+            updateActiveChallengesUI();
             renderChallenges();
             switchTab('inicio');
         }
 
-        function cancelChallenge(id) {
-            activeChallenges = activeChallenges.filter(ac => ac.id !== id);
-            updateHomeChallenges();
-            renderChallenges();
-        }
-
-        function updateHomeChallenges() {
+        function updateActiveChallengesUI() {
             const cont = document.getElementById('active-challenges-container');
             cont.innerHTML = '';
             activeChallenges.forEach(ac => {
                 cont.innerHTML += `
-                <div class="p-4 glass rounded-3xl border-l-4 border-yellow-500 relative">
-                    <button onclick="cancelChallenge('${ac.id}')" class="absolute top-2 right-4 text-slate-700"><i data-lucide="x" class="w-4 h-4"></i></button>
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="text-[7px] font-black text-yellow-500 uppercase italic">Ativo</span>
-                        <span class="text-[9px] font-bold text-yellow-500">${ac.progress}%</span>
+                <div onclick="showChallengeModal('${ac.id}')" class="p-5 glass rounded-3xl border-l-4 border-yellow-500 relative cursor-pointer">
+                    <div class="flex justify-between items-center mb-2 pointer-events-none">
+                        <span class="text-[7px] font-black text-yellow-500 uppercase italic">Andamento</span>
+                        <span class="text-[10px] font-bold text-yellow-500">${ac.progress}%</span>
                     </div>
-                    <h4 class="font-black italic text-xs mb-2 uppercase">${ac.name}</h4>
-                    <div class="w-full bg-slate-800 h-1.5 rounded-full"><div class="bg-yellow-500 h-full" style="width: ${ac.progress}%"></div></div>
+                    <h4 class="font-black italic text-xs mb-2 uppercase pointer-events-none">${ac.name}</h4>
+                    <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden pointer-events-none"><div class="bg-yellow-500 h-full" style="width: ${ac.progress}%"></div></div>
                 </div>
             `;
             });
             lucide.createIcons();
+        }
+
+        function showChallengeModal(id) {
+            const c = activeChallenges.find(a => a.id === id);
+            selectedChallengeId = id;
+            document.getElementById('modal-challenge-title').innerText = c.name;
+            document.getElementById('modal-challenge-desc').innerText = c.desc;
+            document.getElementById('modal-challenge').classList.add('active');
+        }
+
+        function hideChallengeModal() {
+            document.getElementById('modal-challenge').classList.remove('active');
+        }
+
+        function finishChallengeFromModal() {
+            activeChallenges = activeChallenges.filter(a => a.id !== selectedChallengeId);
+            hideChallengeModal();
+            updateActiveChallengesUI();
+            renderChallenges();
+            alert("Desafio finalizado e pontos creditados!");
         }
 
         function sendMessage() {
@@ -620,12 +699,12 @@
             if (!input.value) return;
             const msg = input.value;
             const chat = document.getElementById('chat-messages');
-            chat.innerHTML += `<div class="flex justify-end"><div class="bg-white/10 p-4 rounded-2xl rounded-tr-none text-xs font-bold italic text-slate-300 max-w-[80%] uppercase">${msg}</div></div>`;
+            chat.innerHTML += `<div class="flex justify-end"><div class="bg-white/10 p-4 rounded-3xl rounded-tr-none text-xs font-bold italic text-slate-300 max-w-[80%] uppercase">${msg}</div></div>`;
             input.value = '';
             setTimeout(() => {
-                chat.innerHTML += `<div class="flex gap-3"><div class="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">IA</div><div class="glass p-4 rounded-2xl rounded-tl-none text-xs font-bold italic text-emerald-500 max-w-[80%] uppercase">Vou analisar isso agora, Marcio!</div></div>`;
+                chat.innerHTML += `<div class="flex gap-3"><div class="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 text-[10px] font-black">IA</div><div class="glass p-4 rounded-3xl rounded-tl-none text-xs font-bold italic text-emerald-500 max-w-[80%] uppercase text-left">Analisando sua pergunta, Marcio... Como seu treinador RB, sugiro focar no pace de 5'30" hoje.</div></div>`;
                 chat.scrollTop = chat.scrollHeight;
-            }, 1000);
+            }, 800);
         }
 
         function initChart() {
@@ -633,8 +712,8 @@
             if (chart) chart.destroy();
             chart = new Chart(ctx, {
                 type: 'bar',
-                data: { labels: ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'], datasets: [{ data: [5, 2, 8, 0, 12, 4, 15], backgroundColor: '#22C55E', borderRadius: 8 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
+                data: { labels: ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'], datasets: [{ data: [5, 2, 6, 0, 10, 4, 12], backgroundColor: '#22C55E' }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
         }
 
