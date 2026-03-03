@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ritmo Brasil (RB) - Versão Final Pro v2.1</title>
+    <title>Ritmo Brasil (RB) - Versão AI Intelligence v2.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -115,7 +115,6 @@
             letter-spacing: 0.05em;
         }
 
-        /* Ajustes para modo Corrida */
         .running-overlay {
             position: absolute;
             bottom: 30px;
@@ -123,14 +122,15 @@
             right: 20px;
             z-index: 100;
             pointer-events: none;
+            transition: all 0.5s ease;
         }
 
         .stats-float {
-            background: rgba(15, 23, 42, 0.8);
+            background: rgba(15, 23, 42, 0.85);
             backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 15px;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 28px;
+            padding: 18px;
             display: flex;
             justify-content: space-around;
             align-items: center;
@@ -138,15 +138,32 @@
         }
 
         .btn-stop {
-            width: 50px;
-            height: 50px;
-            border-radius: 15px;
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
             background: #ef4444;
             color: white;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        @keyframes popIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .ai-message {
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
     </style>
 </head>
@@ -168,17 +185,18 @@
             <div class="p-6">
                 <div class="glass rounded-3xl p-6 border-l-4 border-emerald-500 mb-6">
                     <div class="flex justify-between items-center mb-4">
-                        <span class="text-[10px] font-black text-slate-400">PONTOS ACUMULADOS</span>
+                        <span class="text-[10px] font-black text-slate-400">PONTOS RB</span>
                         <span class="text-xl font-black text-emerald-500">2,850 pts</span>
                     </div>
                     <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
                         <div class="bg-emerald-500 h-full rounded-full" style="width: 65%"></div>
                     </div>
                 </div>
+
                 <div class="bg-slate-900/60 rounded-3xl p-6 border border-white/5 mb-6">
-                    <span class="text-[9px] font-black text-emerald-500 uppercase italic">Próximo Treino</span>
+                    <span class="text-[9px] font-black text-emerald-500 uppercase italic">Recomendado pela IA</span>
                     <h3 class="text-2xl font-black italic tracking-tighter mb-1 mt-1 uppercase">Intervalado 5KM</h3>
-                    <p class="text-xs text-slate-400 mb-6 font-medium">Hoje às 18:30 • Parque Ibirapuera</p>
+                    <p class="text-xs text-slate-400 mb-6">Foco: Evolução de Pace</p>
                     <button onclick="switchTab('correr')"
                         class="w-full py-4 bg-emerald-500 text-black font-black rounded-2xl uppercase italic tracking-tighter">Começar
                         Agora</button>
@@ -192,73 +210,101 @@
             <div class="relative z-10 p-6 flex flex-col h-full pointer-events-none">
                 <div class="glass p-5 rounded-3xl pointer-events-auto bg-slate-950/90 mt-12">
                     <h3 class="text-sm font-black italic mb-4 uppercase">Explorar Rotas</h3>
-                    <div class="space-y-3">
-                        <button
-                            class="w-full bg-emerald-500 text-black py-3 rounded-2xl font-black text-xs uppercase tracking-tighter">Sugerir
-                            Rota saindo daqui</button>
-                    </div>
+                    <button
+                        class="w-full bg-emerald-500 text-black py-3 rounded-2xl font-black text-xs uppercase tracking-tighter">Sugerir
+                        Rota em Guarulhos</button>
                 </div>
             </div>
         </div>
 
-        <!-- TELA CORRER (GPS DINÂMICO) -->
+        <!-- TELA CORRER -->
         <div id="tab-correr" class="tab-content h-full relative">
             <div id="map" class="absolute inset-0 z-0 dark-map"></div>
 
-            <!-- Overlay de Informações Flutuantes (Compactas) -->
-            <div class="running-overlay" id="running-ui">
+            <div class="running-overlay hidden" id="running-ui">
                 <div class="stats-float shadow-2xl">
                     <div class="text-center">
-                        <p class="text-lg font-black italic leading-none" id="pace-display">0'00"</p>
-                        <p class="text-[7px] uppercase font-bold text-slate-500 mt-1">Pace</p>
+                        <p class="text-xl font-black italic text-white" id="pace-display">0'00"</p>
+                        <p class="text-[7px] uppercase font-bold text-slate-500">Pace</p>
                     </div>
                     <div class="text-center">
-                        <p class="text-lg font-black italic leading-none" id="dist-display">0.00</p>
-                        <p class="text-[7px] uppercase font-bold text-slate-500 mt-1">Km</p>
+                        <p class="text-xl font-black italic text-white" id="dist-display">0.00</p>
+                        <p class="text-[7px] uppercase font-bold text-slate-500">Km</p>
                     </div>
                     <div class="text-center">
-                        <p class="text-lg font-black italic leading-none" id="time-display">00:00</p>
-                        <p class="text-[7px] uppercase font-bold text-slate-500 mt-1">Tempo</p>
+                        <p class="text-xl font-black italic text-white" id="time-display">00:00</p>
+                        <p class="text-[7px] uppercase font-bold text-slate-500">Tempo</p>
                     </div>
-                    <div onclick="finishRun()" class="btn-stop">
-                        <i data-lucide="square" class="w-5 h-5 fill-current"></i>
-                    </div>
+                    <div onclick="finishRun()" class="btn-stop"><i data-lucide="square"
+                            class="w-5 h-5 fill-current"></i></div>
                 </div>
             </div>
 
-            <!-- Botão Iniciar (Antes de começar) -->
             <div class="absolute inset-0 flex items-center justify-center z-[60]" id="start-btn-container">
                 <button onclick="startRun()"
                     class="w-24 h-24 bg-emerald-500 text-black rounded-full font-black uppercase italic shadow-2xl shadow-emerald-500/50 flex flex-col items-center justify-center gap-1 active:scale-95 transition-all">
-                    <i data-lucide="play" class="w-8 h-8 fill-current"></i>
-                    <span class="text-[8px]">Iniciar</span>
+                    <i data-lucide="play" class="w-8 h-8 fill-current"></i><span class="text-[8px]">Iniciar</span>
                 </button>
             </div>
         </div>
 
         <!-- TELA DESAFIOS -->
         <div id="tab-desafios" class="tab-content p-6 scroll-hide">
-            <h2 class="text-3xl font-black italic mb-8 mt-6 italic">DESAFIOS RB</h2>
+            <h2 class="text-3xl font-black italic mb-8 mt-6">DESAFIOS RB</h2>
             <div class="glass p-6 rounded-[32px] border-l-4 border-yellow-500 relative">
-                <h3 class="text-xl font-black italic mb-2">Exterminador de 5k</h3>
-                <p class="text-xs text-slate-400">Complete 3 treinos de 5km nesta semana.</p>
+                <h3 class="text-xl font-black italic">Exterminador de 5k</h3>
+                <p class="text-xs text-slate-400">Complete 3 treinos nesta semana para +500pts.</p>
             </div>
         </div>
 
-        <!-- TELA PROGRESSO -->
-        <div id="tab-progresso" class="tab-content p-6 scroll-hide">
-            <h2 class="text-3xl font-black italic mb-8 mt-6 italic">PROGRESSO</h2>
-            <div class="glass p-6 rounded-3xl mb-12">
-                <canvas id="progressChart" height="200"></canvas>
+        <!-- TELA PROGRESSO (AVANÇADA) -->
+        <div id="tab-progresso" class="tab-content scroll-hide p-6">
+            <h2 class="text-3xl font-black italic mb-6 mt-6 uppercase">Progresso</h2>
+
+            <div class="flex justify-between bg-slate-900/50 p-1 rounded-2xl mb-6">
+                <button onclick="updateChart('dia')" id="btn-dia"
+                    class="flex-1 py-2 text-[10px] font-black uppercase text-emerald-500 bg-white/5 rounded-xl">Dia</button>
+                <button onclick="updateChart('semana')" id="btn-semana"
+                    class="flex-1 py-2 text-[10px] font-black uppercase text-slate-500">Semana</button>
+                <button onclick="updateChart('mes')" id="btn-mes"
+                    class="flex-1 py-2 text-[10px] font-black uppercase text-slate-500">Mês</button>
             </div>
-            <div class="p-5 glass rounded-[20px] border-l-2 border-emerald-500">
-                <p class="text-[8px] font-black text-emerald-500 uppercase mb-1">RitmoCoach IA Analyse</p>
-                <p class="text-xs font-medium text-slate-300 italic">"Você está 12% mais rápido que na semana passada!"
-                </p>
+
+            <div class="glass p-5 rounded-3xl mb-6 h-[200px]">
+                <canvas id="progressChart"></canvas>
+            </div>
+
+            <!-- Novas Metodologias de Análise -->
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="glass p-4 rounded-3xl">
+                        <p class="text-[8px] text-slate-500 font-bold uppercase mb-1">Carga Crítica</p>
+                        <p class="text-xl font-black text-yellow-500">84%</p>
+                        <div class="w-full bg-slate-800 h-1 rounded-full mt-2">
+                            <div class="bg-yellow-500 h-full" style="width: 84%"></div>
+                        </div>
+                    </div>
+                    <div class="glass p-4 rounded-3xl">
+                        <p class="text-[8px] text-slate-500 font-bold uppercase mb-1">Ritmo de Sono</p>
+                        <p class="text-xl font-black text-blue-400">Excelente</p>
+                        <p class="text-[7px] text-slate-500">8h12m p/ dia</p>
+                    </div>
+                </div>
+
+                <div class="p-5 glass rounded-3xl border-l-4 border-emerald-500">
+                    <div class="flex items-center gap-2 mb-2">
+                        <i data-lucide="brain" class="w-4 h-4 text-emerald-500"></i>
+                        <p class="text-[8px] font-black uppercase text-emerald-500">RitmoCoach IA Pro Analysis</p>
+                    </div>
+                    <p class="text-[11px] text-slate-200 leading-relaxed italic" id="long-term-ai">
+                        "Sua eficiência mecânica melhorou 7.2%. O índice de fadiga indica que você está pronto para um
+                        aumento de volume de 15% na próxima semana. Parabéns pela consistência em Guarulhos!"
+                    </p>
+                </div>
             </div>
         </div>
 
-        <!-- BARRA DE NAVEGAÇÃO -->
+        <!-- NAVEGAÇÃO -->
         <nav class="nav-bar" id="bottom-nav">
             <div class="nav-item active-tab" onclick="switchTab('inicio')"><i data-lucide="home"></i><span>Início</span>
             </div>
@@ -271,60 +317,71 @@
             </div>
         </nav>
 
-        <!-- SHARE OVERLAY (INSTAGRAMÁVEL) -->
-        <div id="screen-share" class="absolute inset-0 z-[200] hidden flex flex-col p-8 bg-black fade-in">
-            <div class="flex-1 rounded-[45px] relative overflow-hidden flex flex-col p-8 shadow-2xl shadow-emerald-500/10"
-                style="background: linear-gradient(135deg, #020617 0%, #064c31 100%); border: 1px solid rgba(255,255,255,0.1);">
-                <div class="absolute inset-x-0 top-0 h-[50%] z-0 dark-map opacity-50" id="map-share"></div>
-                <div class="absolute inset-0 z-1 bg-gradient-to-b from-transparent via-[#020617]/40 to-[#020617]"></div>
-
-                <div class="flex justify-between items-start relative z-10 mb-6">
-                    <div class="flex items-center gap-2">
-                        <img src="logo.png" class="w-8 h-8 object-contain"
-                            onerror="this.src='https://api.dicebear.com/7.x/initials/svg?seed=RB&backgroundColor=22c55e'">
-                        <span class="font-black italic text-sm tracking-tighter">RITMO BRASIL</span>
-                    </div>
+        <!-- POST-WORKOUT AI REPORT & SHARE -->
+        <div id="screen-share"
+            class="absolute inset-0 z-[200] hidden flex flex-col bg-black overflow-y-auto scroll-hide">
+            <!-- AI FEEDBACK TOP -->
+            <div class="p-8 pb-4 ai-message">
+                <div
+                    class="glass rounded-[32px] p-6 border-2 border-emerald-500/30 relative shadow-2xl shadow-emerald-500/10">
                     <div
-                        class="bg-emerald-500 text-black px-3 py-1 rounded font-black skew-x-[-15deg] text-[9px] uppercase">
-                        TOP PERFORMANCE</div>
-                </div>
-
-                <div class="flex-1 flex flex-col justify-end items-center text-center relative z-10 pb-8">
-                    <h2
-                        class="text-6xl font-black italic tracking-tighter text-white uppercase italic leading-none mb-4">
-                        Elite</h2>
-                    <div
-                        class="grid grid-cols-3 gap-6 w-full mt-6 bg-white/5 py-4 px-2 rounded-3xl backdrop-blur-md border border-white/10">
-                        <div>
-                            <p class="text-xl font-black italic" id="f-dist">0.00</p>
-                            <p class="text-[7px] font-bold text-slate-500 uppercase">KM</p>
-                        </div>
-                        <div>
-                            <p class="text-xl font-black italic" id="f-time">00:00</p>
-                            <p class="text-[7px] font-bold text-slate-500 uppercase">TIME</p>
-                        </div>
-                        <div>
-                            <p class="text-xl font-black italic text-emerald-500" id="f-pace">0'00"</p>
-                            <p class="text-[7px] font-bold text-slate-500 uppercase">PACE</p>
-                        </div>
+                        class="absolute -top-4 left-8 bg-emerald-500 text-black px-4 py-1 rounded-full font-black text-[10px] uppercase">
+                        RitmoCoach IA Report</div>
+                    <h2 class="text-2xl font-black italic text-white mb-2 leading-tight uppercase" id="ai-greeting">
+                        Excelente Corrida, Marcio!</h2>
+                    <p class="text-xs text-slate-300 italic leading-relaxed mb-4" id="ai-analysis-text">Analisando seus
+                        dados: Você manteve uma cadência estável de 174 SPM. Seu pace foi 3% melhor que o planejado!</p>
+                    <div class="bg-emerald-500/10 p-4 rounded-2xl border border-emerald-500/20">
+                        <p class="text-[8px] font-black text-emerald-500 uppercase mb-1">Dica de Ouro</p>
+                        <p class="text-[10px] text-emerald-100 font-medium" id="ai-pro-tip font-italic">"Para amanhã, o
+                            foco deve ser recuperação ativa. Beba 500ml de água extra para repor eletrólitos."</p>
                     </div>
-                </div>
-
-                <div class="relative z-10 border-t border-white/5 pt-6 flex justify-between items-center">
-                    <div class="text-left">
-                        <p class="text-[7px] text-slate-500 font-black uppercase tracking-widest">Guarulhos, SP</p>
-                        <p class="text-[9px] text-white font-bold opacity-60 italic">RitmoCoach IA: "Nível Elite
-                            atingido!"</p>
-                    </div>
-                    <i data-lucide="instagram" class="w-5 h-5 opacity-30"></i>
                 </div>
             </div>
-            <div class="grid grid-cols-2 gap-4 mt-6">
+
+            <!-- INSTA CARD -->
+            <div class="px-8 pb-8">
+                <div id="insta-card"
+                    class="aspect-[9/12] rounded-[45px] relative overflow-hidden flex flex-col p-8 border border-white/10"
+                    style="background: linear-gradient(135deg, #020617 0%, #064c31 100%);">
+                    <div class="absolute inset-x-0 top-0 h-[50%] z-0 dark-map opacity-50" id="map-share"></div>
+                    <div class="absolute inset-0 z-1 bg-gradient-to-b from-transparent via-[#020617]/50 to-[#020617]">
+                    </div>
+
+                    <div class="flex justify-between items-start relative z-10">
+                        <div class="flex items-center gap-2"><img src="logo.png" class="w-8 h-8 object-contain"
+                                onerror="this.src='https://api.dicebear.com/7.x/initials/svg?seed=RB&backgroundColor=22c55e'"><span
+                                class="font-black italic text-[10px]">RITMO BRASIL</span></div>
+                        <div
+                            class="bg-emerald-500 text-black px-3 py-1 rounded font-black skew-x-[-15deg] text-[8px] uppercase tracking-tighter">
+                            AI VERIFIED</div>
+                    </div>
+
+                    <div class="flex-1 flex flex-col justify-end items-center text-center relative z-10 pb-4">
+                        <h2
+                            class="text-6xl font-black italic tracking-tighter text-white uppercase italic leading-none mb-4">
+                            Elite</h2>
+                        <div
+                            class="grid grid-cols-3 gap-4 w-full bg-white/5 py-4 px-2 rounded-3xl backdrop-blur-md border border-white/5">
+                            <div>
+                                <p class="text-xl font-black italic" id="f-dist">0.00</p>
+                                <p class="text-[7px] font-bold text-slate-500 uppercase">KM</p>
+                            </div>
+                            <div>
+                                <p class="text-xl font-black italic" id="f-time">00:00</p>
+                                <p class="text-[7px] font-bold text-slate-500 uppercase">Tempo</p>
+                            </div>
+                            <div>
+                                <p class="text-xl font-black italic text-emerald-500" id="f-pace">0'00"</p>
+                                <p class="text-[7px] font-bold text-slate-500 uppercase">Pace</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <button onclick="location.reload()"
-                    class="py-4 glass rounded-2xl font-bold uppercase text-[10px] tracking-widest text-slate-400">Início</button>
-                <button
-                    class="py-4 bg-emerald-500 text-black rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-emerald-500/20">Salvar
-                    Rota</button>
+                    class="mt-6 w-full py-5 bg-white text-black font-black rounded-3xl uppercase tracking-tighter italic">Voltar
+                    ao Painel</button>
             </div>
         </div>
 
@@ -333,15 +390,15 @@
     <script>
         lucide.createIcons();
         let map, mapShare, pathLine, timerInterval, dist = 0, time = 0, pathCoords = [], currentPos = [-23.45, -46.53];
+        let chart;
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active-screen'));
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active-tab'));
             document.getElementById(`tab-${tabId}`).classList.add('active-screen');
             event?.currentTarget?.classList.add('active-tab');
-
             if (tabId === 'correr') initMapRun();
-            if (tabId === 'progresso') initChart();
+            if (tabId === 'progresso') initChart('dia');
             lucide.createIcons();
         }
 
@@ -357,9 +414,8 @@
 
         function startRun() {
             document.getElementById('start-btn-container').classList.add('hidden');
-            document.getElementById('bottom-nav').style.transform = 'translateY(100px)'; // Esconde nav bar
+            document.getElementById('bottom-nav').style.transform = 'translateY(100px)';
             document.getElementById('running-ui').classList.remove('hidden');
-
             timerInterval = setInterval(() => {
                 time++; dist += 0.005;
                 currentPos[0] += (Math.random() - 0.5) * 0.0001; currentPos[1] += (Math.random() - 0.5) * 0.0001;
@@ -387,6 +443,25 @@
             document.getElementById('f-time').innerText = document.getElementById('time-display').innerText;
             document.getElementById('f-pace').innerText = document.getElementById('pace-display').innerText;
 
+            // AI FEEDBACK LOGIC
+            const greetings = ["Sensacional, Marcio!", "Treino Brabo!", "Você é Alvo!", "Meta Batida!"];
+            const analysis = [
+                `Analisando: Você manteve um Pace de ${document.getElementById('pace-display').innerText}, destruindo as expectativas!`,
+                "Sua oscilação vertical foi mínima, mantendo a eficiência lá no alto!",
+                "Evolução sólida: Seu fôlego se recuperou 15% mais rápido hoje.",
+                "Consistência Guarulhos ativada! Sua linha de rota foi perfeita."
+            ];
+            const tips = [
+                "Dica: Foco em mobilidade de tornozelo para o próximo treino.",
+                "Dica: Hidratação imediata: 500ml de água + eletrólitos.",
+                "Dica: Use rolo de liberação na panturrilha hoje à noite.",
+                "Dica: Descanse bem. Amanhã a IA sugere apenas caminhada leve."
+            ];
+
+            document.getElementById('ai-greeting').innerText = greetings[Math.floor(Math.random() * greetings.length)];
+            document.getElementById('ai-analysis-text').innerText = analysis[Math.floor(Math.random() * analysis.length)];
+            document.getElementById('ai-pro-tip').innerText = tips[Math.floor(Math.random() * tips.length)];
+
             setTimeout(() => {
                 if (!mapShare) {
                     mapShare = L.map('map-share', { zoomControl: false, attributionControl: false }).setView(currentPos, 15);
@@ -396,12 +471,33 @@
             }, 300);
         }
 
-        function initChart() {
+        function updateChart(type) {
+            const btns = ['btn-dia', 'btn-semana', 'btn-mes'];
+            btns.forEach(b => {
+                const el = document.getElementById(b);
+                el.classList.remove('text-emerald-500', 'bg-white/5');
+                el.classList.add('text-slate-500');
+            });
+            document.getElementById('btn-' + type).classList.add('text-emerald-500', 'bg-white/5');
+            document.getElementById('btn-' + type).classList.remove('text-slate-500');
+            initChart(type);
+        }
+
+        function initChart(type = 'dia') {
             const ctx = document.getElementById('progressChart').getContext('2d');
-            new Chart(ctx, {
+            if (chart) chart.destroy();
+
+            let data = [5, 2, 6, 0, 10, 4, 12];
+            let labels = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'];
+
+            if (type === 'mes') {
+                data = [22, 25, 30, 28]; labels = ['W1', 'W2', 'W3', 'W4'];
+            }
+
+            chart = new Chart(ctx, {
                 type: 'bar',
-                data: { labels: ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'], datasets: [{ data: [5, 2, 6, 0, 10, 4, 12], backgroundColor: '#22C55E' }] },
-                options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
+                data: { labels: labels, datasets: [{ data: data, backgroundColor: '#22C55E', borderRadius: 6 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
             });
         }
     </script>
