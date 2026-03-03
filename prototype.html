@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ritmo Brasil (RB) - Versão Final Pro v2.0</title>
+    <title>Ritmo Brasil (RB) - Versão Final Pro v2.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -90,6 +90,7 @@
             align-items: center;
             z-index: 50;
             padding-bottom: 20px;
+            transition: transform 0.3s ease;
         }
 
         .nav-item {
@@ -113,14 +114,48 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
+
+        /* Ajustes para modo Corrida */
+        .running-overlay {
+            position: absolute;
+            bottom: 30px;
+            left: 20px;
+            right: 20px;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .stats-float {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            pointer-events: auto;
+        }
+
+        .btn-stop {
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            background: #ef4444;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
     </style>
 </head>
 
 <body>
 
-    <div class="mobile-container pb-[85px]">
+    <div class="mobile-container pb-[85px]" id="app-container">
 
-        <!-- 1. TELA INÍCIO -->
+        <!-- TELA INÍCIO -->
         <div id="tab-inicio" class="tab-content active-screen scroll-hide">
             <div class="p-6 flex justify-between items-center bg-slate-950/50 sticky top-0 z-10 backdrop-blur-md">
                 <img src="logo.png" alt="RB" class="w-10 h-10 object-contain"
@@ -130,7 +165,6 @@
                     <p class="font-bold text-lg text-emerald-500 italic">Ritmo Marcio ⚡</p>
                 </div>
             </div>
-
             <div class="p-6">
                 <div class="glass rounded-3xl p-6 border-l-4 border-emerald-500 mb-6">
                     <div class="flex justify-between items-center mb-4">
@@ -141,248 +175,174 @@
                         <div class="bg-emerald-500 h-full rounded-full" style="width: 65%"></div>
                     </div>
                 </div>
-
                 <div class="bg-slate-900/60 rounded-3xl p-6 border border-white/5 mb-6">
                     <span class="text-[9px] font-black text-emerald-500 uppercase italic">Próximo Treino</span>
-                    <h3 class="text-2xl font-black italic tracking-tighter mb-1 mt-1">INTERVALADO 5KM</h3>
-                    <p class="text-xs text-slate-400 mb-6">Hoje às 18:30 • Parque Ibirapuera</p>
-                    <div class="grid grid-cols-2 gap-3 text-center">
-                        <div class="bg-white/5 py-3 rounded-2xl">
-                            <p class="text-lg font-black italic">5:30</p>
-                            <p class="text-[8px] text-slate-500 font-bold uppercase">Pace Alvo</p>
-                        </div>
-                        <div class="bg-white/5 py-3 rounded-2xl">
-                            <p class="text-lg font-black italic">4x1k</p>
-                            <p class="text-[8px] text-slate-500 font-bold uppercase">Séries</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="glass p-4 rounded-2xl text-center">
-                        <p class="text-2xl mb-1">🏅</p>
-                        <p class="text-[8px] font-black uppercase">Primeiro 5k</p>
-                    </div>
-                    <div class="glass p-4 rounded-2xl text-center">
-                        <p class="text-2xl mb-1">🔥</p>
-                        <p class="text-[8px] font-black uppercase">Streak 7 Dias</p>
-                    </div>
+                    <h3 class="text-2xl font-black italic tracking-tighter mb-1 mt-1 uppercase">Intervalado 5KM</h3>
+                    <p class="text-xs text-slate-400 mb-6 font-medium">Hoje às 18:30 • Parque Ibirapuera</p>
+                    <button onclick="switchTab('correr')"
+                        class="w-full py-4 bg-emerald-500 text-black font-black rounded-2xl uppercase italic tracking-tighter">Começar
+                        Agora</button>
                 </div>
             </div>
         </div>
 
-        <!-- 2. TELA MAPA (Personalização) -->
+        <!-- TELA MAPA -->
         <div id="tab-mapa" class="tab-content h-full relative">
             <div id="map-route" class="absolute inset-0 z-0 dark-map"></div>
             <div class="relative z-10 p-6 flex flex-col h-full pointer-events-none">
-                <div class="glass p-4 rounded-3xl pointer-events-auto bg-slate-950/80 mt-12">
-                    <h3 class="text-sm font-black italic mb-4 uppercase">Para onde vamos hoje?</h3>
+                <div class="glass p-5 rounded-3xl pointer-events-auto bg-slate-950/90 mt-12">
+                    <h3 class="text-sm font-black italic mb-4 uppercase">Explorar Rotas</h3>
                     <div class="space-y-3">
                         <button
-                            class="w-full bg-emerald-500 text-black py-3 rounded-2xl font-black text-xs uppercase tracking-tighter shadow-lg shadow-emerald-500/20">Usar
-                            Sugestão: Parque Trianon (4km)</button>
-                        <button
-                            class="w-full bg-white/10 text-white py-3 rounded-2xl font-black text-xs uppercase tracking-tighter">Personalizar
-                            Rota</button>
-                    </div>
-                </div>
-
-                <div class="mt-auto pointer-events-auto mb-20 scroll-hide overflow-x-auto flex gap-4 p-2">
-                    <div class="min-w-[200px] glass p-4 rounded-2xl">
-                        <p class="font-black italic text-sm">Rota do Lago</p>
-                        <p class="text-xs text-slate-400">3.2km Leve</p>
-                    </div>
-                    <div class="min-w-[200px] glass p-4 rounded-2xl">
-                        <p class="font-black italic text-sm">Desfiladeiro Central</p>
-                        <p class="text-xs text-slate-400">8.5km Intenso</p>
+                            class="w-full bg-emerald-500 text-black py-3 rounded-2xl font-black text-xs uppercase tracking-tighter">Sugerir
+                            Rota saindo daqui</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 3. TELA CORRER -->
+        <!-- TELA CORRER (GPS DINÂMICO) -->
         <div id="tab-correr" class="tab-content h-full relative">
             <div id="map" class="absolute inset-0 z-0 dark-map"></div>
-            <div
-                class="relative z-10 flex flex-col h-full bg-gradient-to-t from-[#020617] via-transparent to-transparent pointer-events-none">
-                <div class="mt-auto p-8 text-center pointer-events-auto pb-32">
-                    <h4 class="text-[10px] font-black italic text-emerald-500 uppercase tracking-widest mb-2">GPS Ativo
-                    </h4>
-                    <p class="text-7xl font-black italic tracking-tighter mb-10" id="pace-display">0'00"</p>
-                    <div class="grid grid-cols-3 gap-6 mb-10">
-                        <div>
-                            <p class="text-2xl font-black italic" id="dist-display">0.00</p>
-                            <p class="text-[8px] uppercase font-heavy text-slate-500">KM</p>
-                        </div>
-                        <div>
-                            <p class="text-2xl font-black italic" id="time-display">00:00</p>
-                            <p class="text-[8px] uppercase font-heavy text-slate-500">Tempo</p>
-                        </div>
-                        <div>
-                            <p class="text-2xl font-black italic">14.2</p>
-                            <p class="text-[8px] uppercase font-heavy text-slate-500">Km/h</p>
-                        </div>
+
+            <!-- Overlay de Informações Flutuantes (Compactas) -->
+            <div class="running-overlay" id="running-ui">
+                <div class="stats-float shadow-2xl">
+                    <div class="text-center">
+                        <p class="text-lg font-black italic leading-none" id="pace-display">0'00"</p>
+                        <p class="text-[7px] uppercase font-bold text-slate-500 mt-1">Pace</p>
                     </div>
-                    <div class="flex gap-4">
-                        <button onclick="startRun()"
-                            class="flex-1 py-5 bg-emerald-500 text-black font-black rounded-3xl uppercase italic tracking-tighter active:scale-95 transition-all">Começar</button>
-                        <button onclick="finishRun()"
-                            class="px-8 py-5 bg-red-600 text-white font-black rounded-3xl uppercase italic tracking-tighter active:scale-95 transition-all">Parar</button>
+                    <div class="text-center">
+                        <p class="text-lg font-black italic leading-none" id="dist-display">0.00</p>
+                        <p class="text-[7px] uppercase font-bold text-slate-500 mt-1">Km</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-lg font-black italic leading-none" id="time-display">00:00</p>
+                        <p class="text-[7px] uppercase font-bold text-slate-500 mt-1">Tempo</p>
+                    </div>
+                    <div onclick="finishRun()" class="btn-stop">
+                        <i data-lucide="square" class="w-5 h-5 fill-current"></i>
                     </div>
                 </div>
             </div>
+
+            <!-- Botão Iniciar (Antes de começar) -->
+            <div class="absolute inset-0 flex items-center justify-center z-[60]" id="start-btn-container">
+                <button onclick="startRun()"
+                    class="w-24 h-24 bg-emerald-500 text-black rounded-full font-black uppercase italic shadow-2xl shadow-emerald-500/50 flex flex-col items-center justify-center gap-1 active:scale-95 transition-all">
+                    <i data-lucide="play" class="w-8 h-8 fill-current"></i>
+                    <span class="text-[8px]">Iniciar</span>
+                </button>
+            </div>
         </div>
 
-        <!-- 4. TELA DESAFIOS -->
+        <!-- TELA DESAFIOS -->
         <div id="tab-desafios" class="tab-content p-6 scroll-hide">
-            <h2 class="text-3xl font-black italic italic mb-8 mt-6">DESAFIOS RB</h2>
-            <div class="space-y-6">
-                <div class="glass p-6 rounded-[32px] border-l-4 border-yellow-500 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-10"><i data-lucide="zap" class="w-20 h-20"></i></div>
-                    <p class="text-[8px] font-black text-yellow-500 uppercase mb-2">Semanal</p>
-                    <h3 class="text-xl font-black italic mb-2">O Exterminador de 5k</h3>
-                    <p class="text-xs text-slate-400 mb-6">Corra 3 vezes a distância de 5km nesta semana.</p>
-                    <div class="flex justify-between items-center">
-                        <div class="text-emerald-500 font-black text-xs italic">+500 pts</div>
-                        <button
-                            class="bg-white text-black px-6 py-2 rounded-full font-black text-[10px] uppercase">Participar</button>
-                    </div>
-                </div>
-
-                <div class="glass p-6 rounded-[32px] border-l-4 border-emerald-500 opacity-70">
-                    <p class="text-[8px] font-black text-emerald-500 uppercase mb-2">Mensal</p>
-                    <h3 class="text-xl font-black italic mb-2">Rei de Guarulhos</h3>
-                    <p class="text-xs text-slate-400 mb-6">Acumule 100km corridos em Março.</p>
-                    <div class="flex justify-between items-center text-[10px] font-black uppercase text-slate-500">
-                        <span>Em Andamento</span>
-                        <span>12.4 / 100 km</span>
-                    </div>
-                </div>
+            <h2 class="text-3xl font-black italic mb-8 mt-6 italic">DESAFIOS RB</h2>
+            <div class="glass p-6 rounded-[32px] border-l-4 border-yellow-500 relative">
+                <h3 class="text-xl font-black italic mb-2">Exterminador de 5k</h3>
+                <p class="text-xs text-slate-400">Complete 3 treinos de 5km nesta semana.</p>
             </div>
         </div>
 
-        <!-- 5. TELA PROGRESSO -->
+        <!-- TELA PROGRESSO -->
         <div id="tab-progresso" class="tab-content p-6 scroll-hide">
-            <h2 class="text-3xl font-black italic mb-6 mt-6 uppercase italic">Progresso</h2>
-            <div class="flex justify-between bg-slate-900 p-1 rounded-2xl mb-8">
-                <button
-                    class="flex-1 py-2 text-[10px] font-black uppercase text-emerald-500 bg-white/5 rounded-xl">Dia</button>
-                <button class="flex-1 py-2 text-[10px] font-black uppercase text-slate-500">Semana</button>
-                <button class="flex-1 py-2 text-[10px] font-black uppercase text-slate-500">Mês</button>
-                <button class="flex-1 py-2 text-[10px] font-black uppercase text-slate-500">Ano</button>
-            </div>
-
-            <div class="glass p-6 rounded-3xl mb-8">
+            <h2 class="text-3xl font-black italic mb-8 mt-6 italic">PROGRESSO</h2>
+            <div class="glass p-6 rounded-3xl mb-12">
                 <canvas id="progressChart" height="200"></canvas>
             </div>
-
-            <div class="space-y-4">
-                <div class="flex justify-between items-center p-4 glass rounded-[20px]">
-                    <div>
-                        <p class="text-xs font-black italic uppercase">Volume Total</p>
-                        <p class="text-2xl font-black text-emerald-500">124.8<span
-                                class="text-xs ml-1 grayscale">KM</span></p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[8px] text-slate-500 font-bold uppercase">Meta Anual</p>
-                        <p class="text-xs font-bold">12% Concluído</p>
-                    </div>
-                </div>
-                <div class="p-5 glass rounded-[20px] border-l-2 border-emerald-500">
-                    <p class="text-[8px] font-black text-emerald-500 uppercase mb-1">RitmoCoach IA Analyse</p>
-                    <p class="text-xs font-medium text-slate-300">"Sua cadência aumentou 4% nos últimos 7 dias. Seu
-                        índice de fadiga está estável. Mantenha os treinos de quarta."</p>
-                </div>
+            <div class="p-5 glass rounded-[20px] border-l-2 border-emerald-500">
+                <p class="text-[8px] font-black text-emerald-500 uppercase mb-1">RitmoCoach IA Analyse</p>
+                <p class="text-xs font-medium text-slate-300 italic">"Você está 12% mais rápido que na semana passada!"
+                </p>
             </div>
         </div>
 
         <!-- BARRA DE NAVEGAÇÃO -->
-        <nav class="nav-bar">
-            <div class="nav-item active-tab" onclick="switchTab('inicio')">
-                <i data-lucide="home"></i>
-                <span>Início</span>
+        <nav class="nav-bar" id="bottom-nav">
+            <div class="nav-item active-tab" onclick="switchTab('inicio')"><i data-lucide="home"></i><span>Início</span>
             </div>
-            <div class="nav-item" onclick="switchTab('mapa')">
-                <i data-lucide="map"></i>
-                <span>Mapa</span>
+            <div class="nav-item" onclick="switchTab('mapa')"><i data-lucide="map"></i><span>Mapa</span></div>
+            <div class="nav-item" onclick="switchTab('correr')"><i data-lucide="play-circle"></i><span>Correr</span>
             </div>
-            <div class="nav-item" onclick="switchTab('correr')">
-                <div
-                    class="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center -mt-8 shadow-xl shadow-emerald-500/30 text-black">
-                    <i data-lucide="play" class="fill-current"></i>
-                </div>
-                <span>Correr</span>
+            <div class="nav-item" onclick="switchTab('desafios')"><i data-lucide="trophy"></i><span>Desafios</span>
             </div>
-            <div class="nav-item" onclick="switchTab('desafios')">
-                <i data-lucide="trophy"></i>
-                <span>Desafios</span>
-            </div>
-            <div class="nav-item" onclick="switchTab('progresso')">
-                <i data-lucide="activity"></i>
-                <span>Progresso</span>
+            <div class="nav-item" onclick="switchTab('progresso')"><i data-lucide="activity"></i><span>Status</span>
             </div>
         </nav>
 
-        <!-- SHARE/CONGRATS (Overlay) -->
-        <div id="screen-share" class="absolute inset-0 z-[100] hidden flex-col p-8 bg-black">
-            <!-- Reutilizando o card do commit anterior mas em modo overlay -->
-            <div class="flex-1 rounded-[40px] relative overflow-hidden flex flex-col p-8"
-                style="background: linear-gradient(135deg, #020617 0%, #064c31 100%);">
-                <div class="absolute inset-x-0 top-0 h-[45%] z-0 dark-map opacity-50" id="map-share"></div>
-                <div class="absolute inset-0 z-1 bg-gradient-to-b from-transparent via-[#020617]/50 to-[#020617]"></div>
-                <div class="flex justify-center items-center h-full relative z-10 flex-col">
-                    <h2 class="text-6xl font-black italic tracking-tighter text-white uppercase italic">Elite</h2>
-                    <p class="text-emerald-500 font-black tracking-[0.4em] text-[10px] mt-4">RECORD ACQUIRED</p>
-                    <div class="grid grid-cols-3 gap-6 w-full mt-12">
-                        <div class="text-center">
-                            <p class="text-2xl font-black italic" id="f-dist">5.02</p>
-                            <p class="text-[7px] font-bold text-slate-500">KM</p>
+        <!-- SHARE OVERLAY (INSTAGRAMÁVEL) -->
+        <div id="screen-share" class="absolute inset-0 z-[200] hidden flex flex-col p-8 bg-black fade-in">
+            <div class="flex-1 rounded-[45px] relative overflow-hidden flex flex-col p-8 shadow-2xl shadow-emerald-500/10"
+                style="background: linear-gradient(135deg, #020617 0%, #064c31 100%); border: 1px solid rgba(255,255,255,0.1);">
+                <div class="absolute inset-x-0 top-0 h-[50%] z-0 dark-map opacity-50" id="map-share"></div>
+                <div class="absolute inset-0 z-1 bg-gradient-to-b from-transparent via-[#020617]/40 to-[#020617]"></div>
+
+                <div class="flex justify-between items-start relative z-10 mb-6">
+                    <div class="flex items-center gap-2">
+                        <img src="logo.png" class="w-8 h-8 object-contain"
+                            onerror="this.src='https://api.dicebear.com/7.x/initials/svg?seed=RB&backgroundColor=22c55e'">
+                        <span class="font-black italic text-sm tracking-tighter">RITMO BRASIL</span>
+                    </div>
+                    <div
+                        class="bg-emerald-500 text-black px-3 py-1 rounded font-black skew-x-[-15deg] text-[9px] uppercase">
+                        TOP PERFORMANCE</div>
+                </div>
+
+                <div class="flex-1 flex flex-col justify-end items-center text-center relative z-10 pb-8">
+                    <h2
+                        class="text-6xl font-black italic tracking-tighter text-white uppercase italic leading-none mb-4">
+                        Elite</h2>
+                    <div
+                        class="grid grid-cols-3 gap-6 w-full mt-6 bg-white/5 py-4 px-2 rounded-3xl backdrop-blur-md border border-white/10">
+                        <div>
+                            <p class="text-xl font-black italic" id="f-dist">0.00</p>
+                            <p class="text-[7px] font-bold text-slate-500 uppercase">KM</p>
                         </div>
-                        <div class="text-center">
-                            <p class="text-2xl font-black italic" id="f-time">26:42</p>
-                            <p class="text-[7px] font-bold text-slate-500">TIME</p>
+                        <div>
+                            <p class="text-xl font-black italic" id="f-time">00:00</p>
+                            <p class="text-[7px] font-bold text-slate-500 uppercase">TIME</p>
                         </div>
-                        <div class="text-center">
-                            <p class="text-2xl font-black italic text-emerald-500" id="f-pace">5'19"</p>
-                            <p class="text-[7px] font-bold text-slate-500">PACE</p>
+                        <div>
+                            <p class="text-xl font-black italic text-emerald-500" id="f-pace">0'00"</p>
+                            <p class="text-[7px] font-bold text-slate-500 uppercase">PACE</p>
                         </div>
                     </div>
                 </div>
+
+                <div class="relative z-10 border-t border-white/5 pt-6 flex justify-between items-center">
+                    <div class="text-left">
+                        <p class="text-[7px] text-slate-500 font-black uppercase tracking-widest">Guarulhos, SP</p>
+                        <p class="text-[9px] text-white font-bold opacity-60 italic">RitmoCoach IA: "Nível Elite
+                            atingido!"</p>
+                    </div>
+                    <i data-lucide="instagram" class="w-5 h-5 opacity-30"></i>
+                </div>
             </div>
-            <button onclick="location.reload()"
-                class="mt-6 w-full py-5 bg-white text-black font-black rounded-3xl uppercase tracking-tighter italic">Voltar
-                ao Painel</button>
+            <div class="grid grid-cols-2 gap-4 mt-6">
+                <button onclick="location.reload()"
+                    class="py-4 glass rounded-2xl font-bold uppercase text-[10px] tracking-widest text-slate-400">Início</button>
+                <button
+                    class="py-4 bg-emerald-500 text-black rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-emerald-500/20">Salvar
+                    Rota</button>
+            </div>
         </div>
 
     </div>
 
     <script>
         lucide.createIcons();
-        let map, mapRoute, mapShare, pathLine, currentPos = [-23.45, -46.53];
-        let dist = 0, time = 0, timerInterval, pathCoords = [];
-        let chart;
+        let map, mapShare, pathLine, timerInterval, dist = 0, time = 0, pathCoords = [], currentPos = [-23.45, -46.53];
 
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active-screen'));
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active-tab'));
-
             document.getElementById(`tab-${tabId}`).classList.add('active-screen');
-            event.currentTarget.classList.add('active-tab');
+            event?.currentTarget?.classList.add('active-tab');
 
-            if (tabId === 'mapa') initMapRoute();
             if (tabId === 'correr') initMapRun();
             if (tabId === 'progresso') initChart();
             lucide.createIcons();
-        }
-
-        function initMapRoute() {
-            setTimeout(() => {
-                if (!mapRoute) {
-                    mapRoute = L.map('map-route', { zoomControl: false, attributionControl: false }).setView(currentPos, 14);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRoute);
-                    L.circle(currentPos, { color: '#22C55E', fillColor: '#22C55E', fillOpacity: 0.2, radius: 2000 }).addTo(mapRoute);
-                }
-            }, 100);
         }
 
         function initMapRun() {
@@ -396,7 +356,10 @@
         }
 
         function startRun() {
-            if (timerInterval) return;
+            document.getElementById('start-btn-container').classList.add('hidden');
+            document.getElementById('bottom-nav').style.transform = 'translateY(100px)'; // Esconde nav bar
+            document.getElementById('running-ui').classList.remove('hidden');
+
             timerInterval = setInterval(() => {
                 time++; dist += 0.005;
                 currentPos[0] += (Math.random() - 0.5) * 0.0001; currentPos[1] += (Math.random() - 0.5) * 0.0001;
@@ -428,35 +391,17 @@
                 if (!mapShare) {
                     mapShare = L.map('map-share', { zoomControl: false, attributionControl: false }).setView(currentPos, 15);
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapShare);
-                    L.polyline(pathCoords, { color: '#22C55E', weight: 10 }).addTo(mapShare);
+                    L.polyline(pathCoords, { color: '#22C55E', weight: 12 }).addTo(mapShare);
                 }
             }, 300);
         }
 
         function initChart() {
             const ctx = document.getElementById('progressChart').getContext('2d');
-            if (chart) chart.destroy();
-            chart = new Chart(ctx, {
+            new Chart(ctx, {
                 type: 'bar',
-                data: {
-                    labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
-                    datasets: [{
-                        label: 'Km Corridos',
-                        data: [5, 0, 6.2, 0, 10, 5.5, 12],
-                        backgroundColor: '#22C55E',
-                        borderRadius: 8,
-                        barThickness: 12
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, border: { display: false } },
-                        x: { grid: { display: false }, border: { display: false } }
-                    }
-                }
+                data: { labels: ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'], datasets: [{ data: [5, 2, 6, 0, 10, 4, 12], backgroundColor: '#22C55E' }] },
+                options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
             });
         }
     </script>
